@@ -1,0 +1,136 @@
+[    0.000000] Linux version 4.4.186-release (leo.xu@hichip01) (gcc version 6.3.0 (Codescape GNU Tools 2018.09-02 for MIPS MTI Linux) ) #83 PREEMPT Tue Mar 3 14:17:55 CST 2026
+[    0.000000] MIPS: machine is Hichip hc16xx
+[    0.000000] CPU0 revision is: 0001974c (MIPS 74Kc)
+[    0.000000] FPU revision is: 01739300
+[    0.000000] Determined physical RAM map:
+[    0.000000]  memory: 0af91e50 @ 00000000 (usable)
+[    0.000000] Initrd not found or empty - disabling initrd
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x0000000000000000-0x000000000af90fff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000000000-0x000000000af90fff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000000000-0x000000000af90fff]
+[    0.000000] On node 0 totalpages: 44945
+[    0.000000] free_area_init_node: node 0, pgdat 8047b440, node_mem_map 81022260
+[    0.000000]   Normal zone: 352 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 44945 pages, LIFO batch:7
+[    0.000000] Primary instruction cache 32kB, VIPT, 4-way, linesize 32 bytes.
+[    0.000000] Primary data cache 32kB, 4-way, VIPT, cache aliases, linesize 32 bytes
+[    0.000000] pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+[    0.000000] pcpu-alloc: [0] 0 
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 44593
+[    0.000000] Kernel command line: root=/dev/ram0 rootfstype=ramfs rw init=/linuxrc console=tty1 earlycon= no_console_suspend noirqdebug
+[    0.000000] IRQ lockup detection disabled
+[    0.000000] PID hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.000000] Dentry cache hash table entries: 32768 (order: 5, 131072 bytes)
+[    0.000000] Inode-cache hash table entries: 16384 (order: 4, 65536 bytes)
+[    0.000000] Writing ErrCtl register=00000000
+[    0.000000] Readback ErrCtl register=00000000
+[    0.000000] Memory: 166200K/179780K available (3304K kernel code, 140K rwdata, 1148K rodata, 6856K init, 202K bss, 13580K reserved, 0K cma-reserved)
+[    0.000000] Preemptible hierarchical RCU implementation.
+[    0.000000] 	Build-time adjustment of leaf fanout to 32.
+[    0.000000] NR_IRQS:128
+[    0.000000] CPU Clock: 1188MHz
+[    0.000000] clocksource_probe: no matching clocksources found
+[    0.000000] clocksource: MIPS: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 3217610179 ns
+[    0.000007] sched_clock: 32 bits at 594MHz, resolution 1ns, wraps every 3615292415ns
+[    0.000255] Console: colour dummy device 80x25
+[    0.000846] console [tty1] enabled
+[    0.000892] Calibrating delay loop... 589.82 BogoMIPS (lpj=294912)
+[    0.009067] pid_max: default: 32768 minimum: 301
+[    0.009267] Mount-cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.009315] Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.012377] devtmpfs: initialized
+[    0.019769] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.019879] futex hash table entries: 256 (order: -1, 3072 bytes)
+[    0.020118] pinctrl core: initialized pinctrl subsystem
+[    0.020751] NET: Registered protocol family 16
+[    0.104507] SCSI subsystem initialized
+[    0.104806] usbcore: registered new interface driver usbfs
+[    0.104951] usbcore: registered new interface driver hub
+[    0.105906] usbcore: registered new device driver usb
+[    0.109512] clocksource: Switched to clocksource MIPS
+[    0.154844] NET: Registered protocol family 1
+[    0.275198] fuse init (API version 7.23)
+[    0.283036] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 253)
+[    0.283134] io scheduler noop registered (default)
+[    0.283380] Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+[    0.287114] SCSI Media Changer driver v0.25 
+[    0.289103] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    0.289178] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+[    0.289615] usbcore: registered new interface driver usb-storage
+[    0.290372] Synopsys Designware Multimedia Card Interface Driver
+[    0.291625] dw_mmc_hc 1884c000.mmc: num-slots property not found, assuming 1 slot is available
+[    0.291719] dw_mmc_hc 1884c000.mmc: fifo-depth property not found, using value of FIFOTH register as default
+[    0.291809] dw_mmc_hc 1884c000.mmc: host clk=198000000
+[    0.291845] dw_mmc_hc 1884c000.mmc: setup source clock : 0x3 (0x0:49MHZ 0x1:99Mhz 0x2:150Mhz 0x3:198Mhz)
+[    0.291901] dw_mmc_hc 1884c000.mmc: IDMAC supports 32-bit address mode.
+[    0.291966] dw_mmc_hc 1884c000.mmc: Using internal DMA controller.
+[    0.292023] dw_mmc_hc 1884c000.mmc: Version ID is 270a
+[    0.292109] dw_mmc_hc 1884c000.mmc: DW MMC controller at irq 10,32 bit host data width,128 deep fifo
+[    0.292219] dw_mmc_hc 1884c000.mmc: No vmmc regulator found
+[    0.292260] dw_mmc_hc 1884c000.mmc: No vqmmc regulator found
+[    0.296280] usbcore: registered new interface driver usbhid
+[    0.296345] usbhid: USB HID core driver
+[    0.325614] dw_mmc_hc 1884c000.mmc: 1 slots initialized
+[    0.326223] virtuart init ok
+[    0.327303] kshmdev init ok
+[    0.330277] m25p80 spi32766.0: found 25HD40, expected m25p80
+[    0.330355] m25p80 spi32766.0: 25HD40 (512 Kbytes)
+[    0.336236] 5 ofpart partitions found on MTD device spi32766.0
+[    0.336303] Creating 5 MTD partitions on "spi32766.0":
+[    0.336342] 0x000000000000-0x000000080000 : "nor"
+[    0.338642] 0x000000000000-0x00000005f000 : "boot"
+[    0.341351] 0x00000005f000-0x000000068000 : "dtb"
+[    0.344291] 0x000000068000-0x000000070000 : "eromfs"
+[    0.347235] 0x000000070000-0x000000080000 : "persistentmem"
+[    0.365840] mmc0: new high speed SDHC card at address 0001
+[    0.372374] mmcblk0: mmc0:0001 asdfg 14.8 GiB 
+[    0.374474] [decrypt_sector_data][1492] 0x0 0x0
+[    0.374888]  mmcblk0: p1
+[    0.376856] fb node name: fb0!
+[    0.376916] fb0 enable!
+[    0.386123] fb node name: fb1!
+[    0.386183] fb1 enable!
+[    0.388331] ---> usb#0 reset
+[    0.393759] musb-hdrc: ConfigData=0xda (UTMI-8, bulk combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
+[    0.393779] musb-hdrc: MHDRC RTL version 2.0 
+[    0.393817] musb-hdrc musb-hdrc.0.auto: MUSB HDRC host driver
+[    0.393908] musb-hdrc musb-hdrc.0.auto: new USB bus registered, assigned bus number 1
+[    0.394163] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[    0.394209] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.394259] usb usb1: Product: MUSB HDRC host driver
+[    0.394290] usb usb1: Manufacturer: Linux 4.4.186-release musb-hcd
+[    0.394323] usb usb1: SerialNumber: musb-hdrc.0.auto
+[    0.395503] hub 1-0:1.0: USB hub found
+[    0.395762] hub 1-0:1.0: 1 port detected
+[    0.396107] ---> usb#0 reset
+[    0.401280] ---> usb#0 mode : 0x1 (0x1:host, 0x2:peripheral, 0x3:otg)
+[    0.405387] ---> usb#1 reset
+[    0.410630] musb-hdrc: ConfigData=0xda (UTMI-8, bulk combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
+[    0.410649] musb-hdrc: MHDRC RTL version 2.0 
+[    0.410686] musb-hdrc musb-hdrc.1.auto: MUSB HDRC host driver
+[    0.410775] musb-hdrc musb-hdrc.1.auto: new USB bus registered, assigned bus number 2
+[    0.411052] usb usb2: New USB device found, idVendor=1d6b, idProduct=0002
+[    0.411103] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.411152] usb usb2: Product: MUSB HDRC host driver
+[    0.411184] usb usb2: Manufacturer: Linux 4.4.186-release musb-hcd
+[    0.411216] usb usb2: SerialNumber: musb-hdrc.1.auto
+[    0.412387] hub 2-0:1.0: USB hub found
+[    0.412631] hub 2-0:1.0: 1 port detected
+[    0.413001] ---> usb#1 reset
+[    0.418044] ---> usb#1 mode : 0x1 (0x1:host, 0x2:peripheral, 0x3:otg)
+[    0.422609] reg_base: b8806000, reg_size: 8192, sys_reg_base: b8800000,  irq: 9
+[    0.425008] hcge 18806000.ge: Init GE success.
+[    0.426070] NET: Registered protocol family 17
+[    0.426213] NET: Registered protocol family 15
+[    0.441141] name:check_adc1
+[    0.442122] name:check_adc5
+[    0.474375] Freeing unused kernel memory: 6856K
+[    1.847764] [decrypt_sector_data][1492] 0x0 0x0
+[    3.099147] FAT-fs (mmcblk0p1): utf8 is not a recommended IO charset for FAT filesystems, filesystem will be case sensitive!
+[    3.102580] FAT-fs (mmcblk0p1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+[    5.119329] map ge register to userspace. off = 0
+[    5.656844] random: nonblocking pool is initialized
