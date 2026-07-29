@@ -20,11 +20,11 @@ First of all I have listed all nodes in /dev folder to see what is available and
 Having devmem is enough to completely dump the BootROM, on MIPS it usually located at 0xBFC00000 address (0x1FC00000 physical). Size is not known, so I’ve dump large enough chunk of 128kb, it turns out that size is 32kb.
 
 Now I can examine resulting binary with Ghidra. So there is the steps BootROM is doing in order:
- ⁃ relocate or mirror itself to 0x9FC00000 address.
- ⁃ Clear caches.
- ⁃ UART updater routine (switchable by some bit in a register)
- ⁃ SPI NAND or SPI NOR loader, depending on some bit field contents.
- ⁃ USB loader as the last boot source.
+* relocate or mirror itself to 0x9FC00000 address.
+* Clear caches.
+* UART updater routine (switchable by some bit in a register)
+* SPI NAND or SPI NOR loader, depending on some bit field contents.
+* USB loader as the last boot source.
 
 However, for neither of the update routine it doesn't seem to set a pin configuration so, I suspect that it is done earlier by coprocessor core or SoC has proper bootstrap pin configuration for that.
 
@@ -61,16 +61,16 @@ dd if=mtd0.dump of=spl.bin bs=1 count=16k
 on my PC later.
 
 SPL goals are:
- ⁃ provide updating mechanism
- ⁃ initialize DDR memory 
- ⁃ load and execute next loader (TPL)
+* provide updating mechanism
+* initialize DDR memory 
+* load and execute next loader (TPL)
 
 Structure of SPL:
- ⁃ some header with configuration bits @ offset 0
- ⁃ Likely .bss section till offset 0x7FF
- ⁃ Entry point with descrambler (de-xor-er) the rest of SPL code and data @ 0x800
- ⁃ Rest of code and data
- ⁃ Unused space filled with 0’s till 16kb size.
+* some header with configuration bits @ offset 0
+* Likely .bss section till offset 0x7FF
+* Entry point with descrambler (de-xor-er) the rest of SPL code and data @ 0x800
+* Rest of code and data
+* Unused space filled with 0’s till 16kb size.
 
 Ghidra shows that SPL has integrated descrambler for itself, so before proceeding I restored the algorithm as a python script [deobfuscate-spl.py](deobfuscate-spl.py) and applied it to SPL binary. Now Ghidra can decode SPL entirely.
 
@@ -84,9 +84,9 @@ See [patch_mtd_emable_hcprogrammer_on_usb0_usb1.c](patch_mtd_emable_hcprogrammer
 First of all it has enumeration bug in Linux which fixed by binary patching the SPL. And at the same time I’ve increased timeout of inactivity for easier hacking of the protocol.
 
 The protocol is very simple, it supports only 3 commands:
- ⁃ write block of RAM (position, size)
- ⁃ read block of RAM (position, size)
- ⁃ Execute code at (address)
+* write block of RAM (position, size)
+* read block of RAM (position, size)
+* Execute code at (address)
 that is enough to run arbitrary code on the device. See [hcusbtool.py](hcusbtool.py) in the repo - it implements host side counterpart to utilize that feature.
 
 ### DRAM initialization 
@@ -100,8 +100,8 @@ TPL loading wasn’t decoded yet, but it uses some sort of software encryption/s
 ## Conclusion
 
 With recovered USB uploader it is feasible to develop fully open Linux kernel for the device but lately it still needs to be integrated into booting process somehow. Fully open kernel gives opportunities to:
- ⁃ use WiFi dongles (retroachievements)
- ⁃ pick well developed userspace distro (opendingux beta will definitely work as it is designed for MIPSEL devices as well)
- ⁃ Use USB for MTP or Ethernet (CDC-ECM/RNDIS) for transferring files.
- ⁃ use external USB controllers, including wireless.
- ⁃ use USB headphones.
+* use WiFi dongles (retroachievements)
+* pick well developed userspace distro (opendingux beta will definitely work as it is designed for MIPSEL devices as well)
+* Use USB for MTP or Ethernet (CDC-ECM/RNDIS) for transferring files.
+* use external USB controllers, including wireless.
+* use USB headphones.
