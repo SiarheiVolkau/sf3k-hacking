@@ -93,6 +93,8 @@ def write_mem_region(addr, data):
         # TODO compare CRCs
     except usb.core.USBError as e:
         print("USB error:", e)
+        print("written: ", pos)
+        print("size: ", size)
         raise e
 
 
@@ -134,7 +136,7 @@ def cmd_upload(addr, filename):
         data = file.read()
         write_mem_region(addr, data)
 
-def cmd_run(addr, timeout=TIMEOUT):
+def cmd_run(addr, noreturn=False, timeout=TIMEOUT):
     dev, ep_out, ep_in = open_device()
 
     req = struct.pack(
@@ -145,12 +147,13 @@ def cmd_run(addr, timeout=TIMEOUT):
         0,          # uTypeCrc:  not relevant in this context
     );
     send_packet(ep_out, req)
-    data = recv_packet(ep_in, timeout)
-    if len(data) != 4:
-        raise RuntimeError("execute code failed: invalid readback size")
-    addr_back = struct.unpack("<I", data)[0]
-    if addr_back != addr:
-        raise RuntimeError("execute code failed: readback address mismatch")
+    if not noreturn:
+        data = recv_packet(ep_in, timeout)
+        if len(data) != 4:
+            raise RuntimeError("execute code failed: invalid readback size")
+        addr_back = struct.unpack("<I", data)[0]
+        if addr_back != addr:
+            raise RuntimeError("execute code failed: readback address mismatch")
 
 def main():
     signal.signal(signal.SIGINT, lambda *_: sys.exit(1))
@@ -169,6 +172,7 @@ def main():
     p.add_argument("filename")
 
     p = sub.add_parser("run")
+    p.add_argument('--return', action=argparse.BooleanOptionalAction, default=True)
     p.add_argument("address")
     p.add_argument("timeout", nargs="?", default=str(TIMEOUT))
 
@@ -181,7 +185,7 @@ def main():
         cmd_upload(int(args.address, 0), args.filename)
         print("done")
     elif args.cmd == "run":
-        cmd_run(int(args.address, 0), int(args.timeout, 0))
+        cmd_run(int(args.address, 0), not getattr(args, "return"), int(args.timeout, 0))
         print("done")
     else:
         raise RuntimeError("unknown command")

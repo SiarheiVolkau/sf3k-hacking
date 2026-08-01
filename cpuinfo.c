@@ -8,6 +8,7 @@ struct cpu_info {
     uint32_t config2;
     uint32_t config3;
     uint32_t config7;
+    uint32_t status;
 };
 
 volatile struct cpu_info* vpcpuinfo = (volatile struct cpu_info*)0xbfe03f00;
@@ -35,6 +36,9 @@ void probe_cpu(void)
 
         "mfc0 $8, $16, 7\n"   // Config7
         "sw   $8, 20(%0)\n"
+
+        "mfc0 $8, $12\n"      // Status
+        "sw   $8, 24(%0)\n"
 
         ".set pop\n"
         :
