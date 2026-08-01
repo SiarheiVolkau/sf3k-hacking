@@ -63,7 +63,7 @@ on my PC later.
 SPL goals are:
 * provide updating mechanism
 * initialize DDR memory 
-* load and execute next loader (TPL)
+* load, decrypt and execute next loader (TPL)
 
 Structure of SPL:
 * some header with configuration bits @ offset 0
@@ -88,6 +88,7 @@ The protocol is very simple, it supports only 3 commands:
 * read block of RAM (position, size)
 * Execute code at (address)
 that is enough to run arbitrary code on the device. See [hcusbtool.py](hcusbtool.py) in the repo - it implements host side counterpart to utilize that feature.
+NOTE: don't try loading to/from cacheable regions.
 
 ### DRAM initialization 
 
@@ -95,7 +96,19 @@ Since USB protocol activated prior DDR initialization it is required to restore 
 
 ### TPL loader
 
-TPL loading wasn’t decoded yet, but it uses some sort of software encryption/scrambling.
+TPL loaded by SPL, it is encrypted by some obscure symmetric algorithm.
+With help of AI, encoding algorithm was restored, see [decrypt_tpl.py](decrypt_tpl.py).
+
+TPL's position on flash, size and load address are stored in the SPL header.
+In my case it is relatively large (0x4AB20 bytes) binary which loaded into DRAM at 0xA9E70000.
+On flash it stored right after SPL.
+
+TPL itself does:
+* set some obscure bits in CP0
+* disables MMU, effectively enabling plain memory model.
+* clears caches
+* relocates rest of itself to a new place in cacheable memory.
+... and many more I didn't decode because of no intention.
 
 ## Conclusion
 
