@@ -110,6 +110,82 @@ TPL itself does:
 * relocates rest of itself to a new place in cacheable memory.
 ... and many more I didn't decode because of no intention.
 
+## Linux loader
+
+Is a utility that helps booting linux kernel over USB protocol.
+It is developed as part of reverse engineering and linux development.
+
+A prebuild kernel stored in the repo for reproducing by other people.
+
+You just need to find UART TX pin on your PCB, L12 pin is designed to
+be used as UART TX. On my SF3000 it is routed to `Volume Down` key and
+TP7 testpoint (see teardown images). UART settings are typical: 115200n8.
+
+To run linux execute [run-linux.sh](run-linux.sh).
+On successful loading you will see boot log like this:
+```
+Installing exception handlers ...
+Clearing cache ...
+Disabling USB ...
+Running kernel ...
+Linux version 7.2.0-rc5-00076-g11028ab62899-dirty (lis@hp-envy-17) (mipsel-unknown-linux-muslsf-gcc (crosstool-NG UNKNOWN) 15.2.0, GNU ld (crosstool-NG UNKNOWN) 2.45) #33 Sat Aug  1 15:51:25 EEST 2026
+CPU0 revision is: 0001974c (MIPS 74Kc)
+FPU revision is: 01739300
+MIPS: machine is SF3000
+earlycon: ns16550 at MMIO 0x18818300 (options '115200n8')
+printk: legacy bootconsole [ns16550] enabled
+OF: reserved mem: Reserved memory: No reserved-memory node in the DT
+Primary instruction cache 32kB, VIPT, 4-way, linesize 32 bytes.
+Primary data cache 32kB, 4-way, VIPT, cache aliases, linesize 32 bytes
+Zone ranges:
+  Normal   [mem 0x0000000000000000-0x000000000fffffff]
+Movable zone start for each node
+Early memory node ranges
+  node   0: [mem 0x0000000000000000-0x000000000fffffff]
+Initmem setup node 0 [mem 0x0000000000000000-0x000000000fffffff]
+Kernel command line: console=ttyS0,115200 earlycon root=/dev/mmcblk0p1 rw rootwait
+printk: log buffer data + meta data: 131072 + 409600 = 540672 bytes
+Dentry cache hash table entries: 32768 (order: 5, 131072 bytes, linear)
+Inode-cache hash table entries: 16384 (order: 4, 65536 bytes, linear)
+Writing ErrCtl register=00000000
+Readback ErrCtl register=00000000
+Built 1 zonelists, mobility grouping on.  Total pages: 65536
+mem auto-init: stack:all(zero), heap alloc:off, heap free:off
+SLUB: HWalign=32, Order=0-3, MinObjects=0, CPUs=1, Nodes=1
+NR_IRQS: 256
+clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 7645041785100000 ns
+clocksource: MIPS: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 3217610179 ns
+sched_clock: 32 bits at 594MHz, resolution 1ns, wraps every 3615292415ns
+Console: colour dummy device 80x25
+Calibrating delay loop... 592.89 BogoMIPS (lpj=1185792)
+pid_max: default: 32768 minimum: 301
+Mount-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes, linear)
+VFS: Finished mounting rootfs on nullfs
+Performance counters: mips/74K PMU enabled, 4 32-bit counters available to each CPU, irq 6
+Memory: 252920K/262144K available (3684K kernel code, 530K rwdata, 556K rodata, 1236K init, 191K bss, 8500K reserved, 0K cma-reserved)
+devtmpfs: initialized
+posixtimers hash table entries: 512 (order: 0, 2048 bytes, linear)
+futex hash table entries: 256 (3072 bytes on 1 NUMA nodes, total 3 KiB, linear).
+clocksource: Switched to clocksource MIPS
+workingset: timestamp_bits=30 (anon: 25) max_order=16 bucket_order=0 (anon: 0)
+squashfs: version 4.0 (2009/01/31) Phillip Lougher
+io scheduler mq-deadline registered
+io scheduler kyber registered
+Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+of_serial 18818300.serial: error -ENXIO: IRQ index 0 not found
+printk: legacy console [ttyS0] disabled
+18818300.serial: ttyS0 at MMIO 0x18818300 (irq = 0, base_baud = 115200) is a 16550
+printk: legacy console [ttyS0] enabled
+printk: legacy console [ttyS0] enabled
+printk: legacy bootconsole [ns16550] disabled
+printk: legacy bootconsole [ns16550] disabled
+clk: Disabling unused clocks
+Waiting for root device /dev/mmcblk0p1...
+```
+
+Linux development is going in another repository (TBD).
+
 ## Conclusion
 
 With recovered USB uploader it is feasible to develop fully open Linux kernel for the device but lately it still needs to be integrated into booting process somehow. Fully open kernel gives opportunities to:
