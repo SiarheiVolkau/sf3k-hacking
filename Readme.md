@@ -184,7 +184,7 @@ clk: Disabling unused clocks
 Waiting for root device /dev/mmcblk0p1...
 ```
 
-Linux development is going in another repository (TBD).
+Linux development is going in another [repository](https://github.com/SiarheiVolkau/linux-hichip/tree/hc16xx-7.2).
 
 ## Conclusion
 
