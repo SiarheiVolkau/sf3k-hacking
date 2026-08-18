@@ -9,9 +9,11 @@
 #define GPIOBCTRL 0xb88000c4
 #define GPIORCTRL 0xb88000e4
 #define GPIOTCTRL 0xb8800344
+#define DRIVER_CAP 0xb8800184
 
 #define SCTRL_DEVCLKRST1_REG 0xb8800064
 #define SCTRL_DEVRST0_REG    0xb8800080
+#define CLK_SEL_REG1         0xb880007c
 #define SCTRL_DEVRST1_REG    0xb8800084
 
 #define REG_IN_STATE  0x0c
@@ -268,8 +270,21 @@ static void usb_disable(void)
         tmp &= ~(0xf << 4);
         tmp |= (0xd << 4);  /* 675 mV */
         REG8(0xB8845104) = tmp;
+}
 
+static void sdio_setup(void)
+{
+        /* set regulator to 3v3 */
+        uint32_t val = REG32(DRIVER_CAP);
+        val &= ~(0x03 << 24);
+        val |= 0x01 << 24;
+        REG32(DRIVER_CAP) = val;
 
+        /* set CIU clock to minimal clock */
+        val = REG32(CLK_SEL_REG1);
+        val &= ~(BIT(20) | BIT(21));
+        val |= BIT(1); /* apply changes bit */
+        REG32(CLK_SEL_REG1) = val;
 }
 
 typedef void (*kernel_entry)(int a0, int a1, int a2, int a3);
@@ -291,6 +306,7 @@ int main()
         UART0_puts("Disabling USB ...\r\n");
         usb_disable();
 
+        sdio_setup();
         UART0_puts("Running kernel ...\r\n");
         entry(0,0,0,0);
 
