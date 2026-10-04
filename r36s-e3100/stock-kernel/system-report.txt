@@ -1,0 +1,548 @@
+=== whoami
+uid=0(root) gid=0(root)
+=== kernel
+Linux buildroot 4.4.186-release #23 PREEMPT Tue Jan 27 16:21:59 CST 2026 mips GNU/Linux
+root=/dev/ram0 rootfstype=ramfs rw init=/linuxrc console=tty1 earlycon= no_console_suspend noirqdebug
+=== cpu
+system type		: Hichip HC16xx Board
+machine			: Hichip hc16xx
+processor		: 0
+cpu model		: MIPS 74Kc V4.12  FPU V0.0
+BogoMIPS		: 589.82
+wait instruction	: yes
+microsecond timers	: yes
+tlb_entries		: 32
+extra interrupt vector	: yes
+hardware watchpoint	: yes, count: 4, address/irw mask: [0x0ffc, 0x0ffc, 0x0ffb, 0x0ffb]
+isa			: mips1 mips2 mips32r1 mips32r2
+ASEs implemented	: mips16 dsp dsp2
+shadow register sets	: 1
+kscratch registers	: 0
+package			: 0
+core			: 1
+VCED exceptions		: not available
+VCEI exceptions		: not available
+
+=== memory
+              total        used        free      shared  buff/cache   available
+Mem:          43160       15568         972           0       26620       10788
+Swap:        131068          76      130992
+MemTotal:          43160 kB
+MemFree:            1164 kB
+MemAvailable:      10748 kB
+Buffers:             300 kB
+Cached:            24968 kB
+SwapCached:           36 kB
+Active:             9668 kB
+Inactive:          11680 kB
+Active(anon):       4192 kB
+Inactive(anon):     6036 kB
+Active(file):       5476 kB
+Inactive(file):     5644 kB
+Unevictable:       14148 kB
+Mlocked:               0 kB
+SwapTotal:        131068 kB
+SwapFree:         130992 kB
+Dirty:                16 kB
+Writeback:             0 kB
+AnonPages:         10232 kB
+Mapped:             6288 kB
+Shmem:                 0 kB
+Slab:               3308 kB
+SReclaimable:       1100 kB
+SUnreclaim:         2208 kB
+KernelStack:         432 kB
+PageTables:          248 kB
+NFS_Unstable:          0 kB
+Bounce:                0 kB
+WritebackTmp:          0 kB
+CommitLimit:      152648 kB
+Committed_AS:     101592 kB
+VmallocTotal:    1048372 kB
+VmallocUsed:           0 kB
+VmallocChunk:          0 kB
+=== mounts
+rootfs / rootfs rw 0 0
+devtmpfs /dev devtmpfs rw,relatime,mode=0755 0 0
+proc /proc proc rw,relatime 0 0
+tmpfs /dev/shm tmpfs rw,relatime,mode=0777 0 0
+tmpfs /tmp tmpfs rw,relatime,mode=1777 0 0
+tmpfs /run tmpfs rw,nosuid,nodev,relatime,mode=0755 0 0
+sysfs /sys sysfs rw,relatime 0 0
+tmpfs /media tmpfs rw,relatime 0 0
+/dev/mmcblk0p1 /media/mmc vfat rw,relatime,fmask=0000,dmask=0000,allow_utime=0022,codepage=437,iocharset=utf8,shortname=mixed,usefree,errors=remount-ro 0 0
+/dev/mmcblk0p1 /mnt/sdcard vfat rw,relatime,fmask=0000,dmask=0000,allow_utime=0022,codepage=437,iocharset=utf8,shortname=mixed,usefree,errors=remount-ro 0 0
+/dev/mmcblk0p1 /lib vfat rw,relatime,fmask=0000,dmask=0000,allow_utime=0022,codepage=437,iocharset=utf8,shortname=mixed,usefree,errors=remount-ro 0 0
+/dev/mmcblk0p1 /usr vfat rw,relatime,fmask=0000,dmask=0000,allow_utime=0022,codepage=437,iocharset=utf8,shortname=mixed,usefree,errors=remount-ro 0 0
+/dev/mmcblk0p1 /bin vfat rw,relatime,fmask=0000,dmask=0000,allow_utime=0022,codepage=437,iocharset=utf8,shortname=mixed,usefree,errors=remount-ro 0 0
+/dev/mmcblk0p1 /sbin vfat rw,relatime,fmask=0000,dmask=0000,allow_utime=0022,codepage=437,iocharset=utf8,shortname=mixed,usefree,errors=remount-ro 0 0
+/dev/mmcblk0p1 /etc vfat rw,relatime,fmask=0000,dmask=0000,allow_utime=0022,codepage=437,iocharset=utf8,shortname=mixed,usefree,errors=remount-ro 0 0
+Filesystem           1K-blocks      Used Available Use% Mounted on
+/dev/mmcblk0p1        15262720  14258080   1004640  93% /media/mmc
+/dev/mmcblk0p1        15262720  14258080   1004640  93% /mnt/sdcard
+/dev/mmcblk0p1        15262720  14258080   1004640  93% /lib
+/dev/mmcblk0p1        15262720  14258080   1004640  93% /usr
+/dev/mmcblk0p1        15262720  14258080   1004640  93% /bin
+/dev/mmcblk0p1        15262720  14258080   1004640  93% /sbin
+/dev/mmcblk0p1        15262720  14258080   1004640  93% /etc
+=== root folder
+/:
+total 164
+drwxr-xr-x   18 root     root             0 Jan 27  2026 .
+drwxr-xr-x   18 root     root             0 Jan 27  2026 ..
+drwxrwxrwx    2 root     root         32768 May 14  2026 bin
+drwxr-xr-x    5 root     root             0 Jan  1 00:00 dev
+drwxrwxrwx    5 root     root         32768 May 14  2026 etc
+drwxr-xr-x    2 root     root             0 Jan 27  2026 hcdemo_files
+-rwxr-xr-x    1 root     root           462 Jan 27  2026 init
+drwxrwxrwx    3 root     root         32768 May 14  2026 lib
+lrwxrwxrwx    1 root     root             3 Jan 27  2026 lib32 -> lib
+lrwxrwxrwx    1 root     root            11 Jan 27  2026 linuxrc -> bin/busybox
+drwxr-xr-x    3 root     root             0 Jan  1 00:00 media
+drwxr-xr-x    3 root     root             0 Jan 27  2026 mnt
+drwxr-xr-x    2 root     root             0 Jan 27  2026 opt
+dr-xr-xr-x   55 root     root             0 Jan  1 00:00 proc
+drwx------    2 root     root             0 Jan 27  2026 root
+drwxr-xr-x    2 root     root             0 Jan  1 00:00 run
+drwxrwxrwx    2 root     root         32768 May 14  2026 sbin
+dr-xr-xr-x   11 root     root             0 Jan  1 00:00 sys
+drwxrwxrwt    5 root     root             0 Jan  1 00:00 tmp
+drwxrwxrwx    8 root     root         32768 May 14  2026 usr
+drwxr-xr-x    4 root     root             0 Jan 27  2026 var
+
+/etc:
+total 704
+drwxrwxrwx    5 root     root         32768 May 14  2026 .
+drwxr-xr-x   18 root     root             0 Jan 27  2026 ..
+-rwxrwxrwx    1 root     root           334 Jan  4  2025 fstab
+-rwxrwxrwx    1 root     root           306 Jan  4  2025 group
+-rwxrwxrwx    1 root     root            10 Jan  4  2025 hostname
+-rwxrwxrwx    1 root     root            40 Jan  4  2025 hosts
+drwxrwxrwx    2 root     root         32768 May 14  2026 init.d
+-rwxrwxrwx    1 root     root          1292 Jan  4  2025 inittab
+-rwxrwxrwx    1 root     root            21 Jan  4  2025 issue
+drwxrwxrwx    2 root     root         32768 May 14  2026 mdev
+-rwxrwxrwx    1 root     root           876 Jan  4  2025 mdev.conf
+-rwxrwxrwx    1 root     root           230 Jan  4  2025 nsswitch.conf
+-rwxrwxrwx    1 root     root           122 Jan  4  2025 os-release
+-rwxrwxrwx    1 root     root           340 Jan  4  2025 passwd
+-rwxrwxrwx    1 root     root           299 Jan  4  2025 profile
+drwxrwxrwx    2 root     root         32768 May 14  2026 profile.d
+-rwxrwxrwx    1 root     root          2744 Jan  4  2025 protocols
+-rwxrwxrwx    1 root     root         10873 Jan  4  2025 services
+-rwxrwxrwx    1 root     root           136 Jan  4  2025 shadow
+-rwxrwxrwx    1 root     root            17 Jan  4  2025 shells
+-rwxrwxrwx    1 root     root            25 Jan  4  2025 sysctl.conf
+-rwxrwxrwx    1 root     root           219 Jan  4  2025 udhcpd.conf
+-rwxrwxrwx    1 root     root           220 Oct  3  2026 wifiprobe.sh
+
+/etc/init.d:
+total 416
+drwxrwxrwx    2 root     root         32768 May 14  2026 .
+drwxrwxrwx    5 root     root         32768 May 14  2026 ..
+-rwxrwxrwx    1 root     root          1012 Jan  4  2025 S01syslogd
+-rwxrwxrwx    1 root     root          1004 Jan  4  2025 S02klogd
+-rwxrwxrwx    1 root     root          2804 Jan  4  2025 S02sysctl
+-rwxrwxrwx    1 root     root           573 Jan  4  2025 S10mdev
+-rwxrwxrwx    1 root     root           152 Jan  4  2025 S21dsc
+-rwxrwxrwx    1 root     root          1080 Jan  4  2025 S23kmod
+-rwxrwxrwx    1 root     root            10 Jan  4  2025 S41hcdaemon
+-rwxrwxrwx    1 root     root           240 Oct  3  2026 S99nzeus
+-rwxrwxrwx    1 root     root          1257 Oct  3  2026 nzeus_report.sh
+-rwxrwxrwx    1 root     root           423 Jan  4  2025 rcK
+-rwxrwxrwx    1 root     root           408 Jan  4  2025 rcS
+
+/tmp:
+total 0
+drwxrwxrwt    5 root     root             0 Jan  1 00:00 .
+drwxr-xr-x   18 root     root             0 Jan 27  2026 ..
+-rw-r--r--    1 root     root             0 Jan  1 00:00 cube_process_msg
+drwxr-xr-x    2 root     root             0 Jan  1 00:00 cubegame_status
+drwxr-xr-x    2 root     root             0 Jan  1 00:00 cubegm
+drwxr-xr-x    2 root     root             0 Jan  1 00:00 joy_key
+-rw-r--r--    1 root     root             0 Jan  1 00:00 process_msg
+
+/tmp/cubegm:
+total 6188
+drwxr-xr-x    2 root     root             0 Jan  1 00:00 .
+drwxrwxrwt    5 root     root             0 Jan  1 00:00 ..
+lrwxrwxrwx    1 root     root            23 Jan  1 00:00 cheat -> /media/mmc/cubegm/cheat
+lrwxrwxrwx    1 root     root            23 Jan  1 00:00 cores -> /media/mmc/cubegm/cores
+-rw-r--r--    1 root     root         98216 Jan  1 00:00 driver.so
+-rwxr-xr-x    1 root     root         12760 Jan  1 00:00 icube
+-rwxr-xr-x    1 root     root           246 Jan  1 00:00 icube.sh
+-rwxr-xr-x    1 root     root           170 Jan  1 00:00 icube_start.sh
+-rwxr-xr-x    1 root     root            55 Jan  1 00:00 icubemp_start.sh
+lrwxrwxrwx    1 root     root            26 Jan  1 00:00 language -> /media/mmc/cubegm/language
+lrwxrwxrwx    1 root     root            21 Jan  1 00:00 lib -> /media/mmc/cubegm/lib
+-rwxr-xr-x    1 root     root       6208364 Jan  1 00:00 rkgame
+lrwxrwxrwx    1 root     root            23 Jan  1 00:00 saves -> /media/mmc/cubegm/saves
+lrwxrwxrwx    1 root     root            24 Jan  1 00:00 states -> /media/mmc/cubegm/states
+lrwxrwxrwx    1 root     root            21 Jan  1 00:00 usr -> /media/mmc/cubegm/usr
+=== input devices
+ls: /dev/input: No such file or directory
+=== screen
+crw-rw----    1 root     root       29,   0 Jan  1 00:00 /dev/fb0
+crw-rw----    1 root     root       29,   1 Jan  1 00:00 /dev/fb1
+
+mode "640x480-0"
+	# D: 0.000 MHz, H: 0.000 kHz, V: 0.000 Hz
+	geometry 640 480 640 11040 16
+	timings 0 0 0 0 0 0 0
+	accel false
+	rgba 5/11,6/5,5/0,0/0
+endmode
+
+640,11040
+=== serial ports
+crw-rw----    1 root     root        5,   0 Jan  1 00:00 /dev/tty
+crw-rw----    1 root     root        4,   0 Jan  1 00:00 /dev/tty0
+crw-rw----    1 root     root        4,   1 Jan  1 00:00 /dev/tty1
+crw-rw----    1 root     root        4,  10 Jan  1 00:00 /dev/tty10
+crw-rw----    1 root     root        4,  11 Jan  1 00:00 /dev/tty11
+crw-rw----    1 root     root        4,  12 Jan  1 00:00 /dev/tty12
+crw-rw----    1 root     root        4,  13 Jan  1 00:00 /dev/tty13
+crw-rw----    1 root     root        4,  14 Jan  1 00:00 /dev/tty14
+crw-rw----    1 root     root        4,  15 Jan  1 00:00 /dev/tty15
+crw-rw----    1 root     root        4,  16 Jan  1 00:00 /dev/tty16
+crw-rw----    1 root     root        4,  17 Jan  1 00:00 /dev/tty17
+crw-rw----    1 root     root        4,  18 Jan  1 00:00 /dev/tty18
+crw-rw----    1 root     root        4,  19 Jan  1 00:00 /dev/tty19
+crw-rw----    1 root     root        4,   2 Jan  1 00:00 /dev/tty2
+crw-rw----    1 root     root        4,  20 Jan  1 00:00 /dev/tty20
+crw-rw----    1 root     root        4,  21 Jan  1 00:00 /dev/tty21
+crw-rw----    1 root     root        4,  22 Jan  1 00:00 /dev/tty22
+crw-rw----    1 root     root        4,  23 Jan  1 00:00 /dev/tty23
+crw-rw----    1 root     root        4,  24 Jan  1 00:00 /dev/tty24
+crw-rw----    1 root     root        4,  25 Jan  1 00:00 /dev/tty25
+crw-rw----    1 root     root        4,  26 Jan  1 00:00 /dev/tty26
+crw-rw----    1 root     root        4,  27 Jan  1 00:00 /dev/tty27
+crw-rw----    1 root     root        4,  28 Jan  1 00:00 /dev/tty28
+crw-rw----    1 root     root        4,  29 Jan  1 00:00 /dev/tty29
+crw-rw----    1 root     root        4,   3 Jan  1 00:00 /dev/tty3
+crw-rw----    1 root     root        4,  30 Jan  1 00:00 /dev/tty30
+crw-rw----    1 root     root        4,  31 Jan  1 00:00 /dev/tty31
+crw-rw----    1 root     root        4,  32 Jan  1 00:00 /dev/tty32
+crw-rw----    1 root     root        4,  33 Jan  1 00:00 /dev/tty33
+crw-rw----    1 root     root        4,  34 Jan  1 00:00 /dev/tty34
+crw-rw----    1 root     root        4,  35 Jan  1 00:00 /dev/tty35
+crw-rw----    1 root     root        4,  36 Jan  1 00:00 /dev/tty36
+crw-rw----    1 root     root        4,  37 Jan  1 00:00 /dev/tty37
+crw-rw----    1 root     root        4,  38 Jan  1 00:00 /dev/tty38
+crw-rw----    1 root     root        4,  39 Jan  1 00:00 /dev/tty39
+crw-rw----    1 root     root        4,   4 Jan  1 00:00 /dev/tty4
+crw-rw----    1 root     root        4,  40 Jan  1 00:00 /dev/tty40
+crw-rw----    1 root     root        4,  41 Jan  1 00:00 /dev/tty41
+crw-rw----    1 root     root        4,  42 Jan  1 00:00 /dev/tty42
+crw-rw----    1 root     root        4,  43 Jan  1 00:00 /dev/tty43
+crw-rw----    1 root     root        4,  44 Jan  1 00:00 /dev/tty44
+crw-rw----    1 root     root        4,  45 Jan  1 00:00 /dev/tty45
+crw-rw----    1 root     root        4,  46 Jan  1 00:00 /dev/tty46
+crw-rw----    1 root     root        4,  47 Jan  1 00:00 /dev/tty47
+crw-rw----    1 root     root        4,  48 Jan  1 00:00 /dev/tty48
+crw-rw----    1 root     root        4,  49 Jan  1 00:00 /dev/tty49
+crw-rw----    1 root     root        4,   5 Jan  1 00:00 /dev/tty5
+crw-rw----    1 root     root        4,  50 Jan  1 00:00 /dev/tty50
+crw-rw----    1 root     root        4,  51 Jan  1 00:00 /dev/tty51
+crw-rw----    1 root     root        4,  52 Jan  1 00:00 /dev/tty52
+crw-rw----    1 root     root        4,  53 Jan  1 00:00 /dev/tty53
+crw-rw----    1 root     root        4,  54 Jan  1 00:00 /dev/tty54
+crw-rw----    1 root     root        4,  55 Jan  1 00:00 /dev/tty55
+crw-rw----    1 root     root        4,  56 Jan  1 00:00 /dev/tty56
+crw-rw----    1 root     root        4,  57 Jan  1 00:00 /dev/tty57
+crw-rw----    1 root     root        4,  58 Jan  1 00:00 /dev/tty58
+crw-rw----    1 root     root        4,  59 Jan  1 00:00 /dev/tty59
+crw-rw----    1 root     root        4,   6 Jan  1 00:00 /dev/tty6
+crw-rw----    1 root     root        4,  60 Jan  1 00:00 /dev/tty60
+crw-rw----    1 root     root        4,  61 Jan  1 00:00 /dev/tty61
+crw-rw----    1 root     root        4,  62 Jan  1 00:00 /dev/tty62
+crw-rw----    1 root     root        4,  63 Jan  1 00:00 /dev/tty63
+crw-rw----    1 root     root        4,   7 Jan  1 00:00 /dev/tty7
+crw-rw----    1 root     root        4,   8 Jan  1 00:00 /dev/tty8
+crw-rw----    1 root     root        4,   9 Jan  1 00:00 /dev/tty9
+crw-rw----    1 root     root        4,  64 Jan  1 00:00 /dev/ttyS0
+crw-rw----    1 root     root        4,  65 Jan  1 00:00 /dev/ttyS1
+crw-rw----    1 root     root        4,  66 Jan  1 00:00 /dev/ttyS2
+crw-rw----    1 root     root        4,  67 Jan  1 00:00 /dev/ttyS3
+/dev/tty             /dev/tty        5       0 system:/dev/tty
+/dev/console         /dev/console    5       1 system:console
+/dev/vc/0            /dev/vc/0       4       0 system:vtmaster
+hichip-uart          /dev/ttyHC    204     187 serial
+serial               /dev/ttyS       4 64-67 serial
+unknown              /dev/tty        4 1-63 console
+=== usb
+Bus 001 Device 001: ID 1d6b:0002
+Bus 002 Device 001: ID 1d6b:0002
+total 0
+drwxr-xr-x    2 root     root             0 Jan  1 00:00 .
+drwxr-xr-x    4 root     root             0 Jan  1 00:00 ..
+lrwxrwxrwx    1 root     root             0 Jan  1 00:00 1-0:1.0 -> ../../../devices/platform/soc/18844000.usb/musb-hdrc.0.auto/usb1/1-0:1.0
+lrwxrwxrwx    1 root     root             0 Jan  1 00:00 2-0:1.0 -> ../../../devices/platform/soc/18850000.usb/musb-hdrc.1.auto/usb2/2-0:1.0
+lrwxrwxrwx    1 root     root             0 Jan  1 00:00 usb1 -> ../../../devices/platform/soc/18844000.usb/musb-hdrc.0.auto/usb1
+lrwxrwxrwx    1 root     root             0 Jan  1 00:00 usb2 -> ../../../devices/platform/soc/18850000.usb/musb-hdrc.1.auto/usb2
+not attached
+not attached
+=== flash chips
+dev:    size   erasesize  name
+mtd0: 00080000 00001000 "nor"
+mtd1: 00061000 00001000 "boot"
+mtd2: 00009000 00001000 "dtb"
+mtd3: 00006000 00001000 "eromfs"
+mtd4: 00010000 00001000 "persistentmem"
+brw-rw-r--    1 root     root      179,   0 Jan  1 00:00 /dev/mmcblk0
+brw-rw-r--    1 root     root      179,   1 Jan  1 00:00 /dev/mmcblk0p1
+crw-rw----    1 root     root       90,   0 Jan  1 00:00 /dev/mtd0
+crw-rw----    1 root     root       90,   1 Jan  1 00:00 /dev/mtd0ro
+crw-rw----    1 root     root       90,   2 Jan  1 00:00 /dev/mtd1
+crw-rw----    1 root     root       90,   3 Jan  1 00:00 /dev/mtd1ro
+crw-rw----    1 root     root       90,   4 Jan  1 00:00 /dev/mtd2
+crw-rw----    1 root     root       90,   5 Jan  1 00:00 /dev/mtd2ro
+crw-rw----    1 root     root       90,   6 Jan  1 00:00 /dev/mtd3
+crw-rw----    1 root     root       90,   7 Jan  1 00:00 /dev/mtd3ro
+crw-rw----    1 root     root       90,   8 Jan  1 00:00 /dev/mtd4
+crw-rw----    1 root     root       90,   9 Jan  1 00:00 /dev/mtd4ro
+brw-rw----    1 root     root       31,   0 Jan  1 00:00 /dev/mtdblock0
+brw-rw----    1 root     root       31,   1 Jan  1 00:00 /dev/mtdblock1
+brw-rw----    1 root     root       31,   2 Jan  1 00:00 /dev/mtdblock2
+brw-rw----    1 root     root       31,   3 Jan  1 00:00 /dev/mtdblock3
+brw-rw----    1 root     root       31,   4 Jan  1 00:00 /dev/mtdblock4
+=== modules
+Module                  Size  Used by    Not tainted
+/lib/modules
+/lib/modules/4.4.186-release
+/lib/modules/4.4.186-release/modules.alias
+/lib/modules/4.4.186-release/modules.alias.bin
+/lib/modules/4.4.186-release/modules.builtin
+/lib/modules/4.4.186-release/modules.builtin.alias.bin
+/lib/modules/4.4.186-release/modules.builtin.bin
+/lib/modules/4.4.186-release/modules.dep
+/lib/modules/4.4.186-release/modules.dep.bin
+/lib/modules/4.4.186-release/modules.devname
+/lib/modules/4.4.186-release/modules.order
+/lib/modules/4.4.186-release/modules.softdep
+/lib/modules/4.4.186-release/modules.symbols
+/lib/modules/4.4.186-release/modules.symbols.bin
+/lib/modules/4.4.186-release/extra
+/lib/modules/4.4.186-release/extra/dsc.ko
+/lib/modules/4.4.186-release/kernel
+/lib/modules/4.4.186-release/kernel/crypto
+/lib/modules/4.4.186-release/kernel/crypto/arc4.ko
+/lib/modules/4.4.186-release/kernel/crypto/ccm.ko
+/lib/modules/4.4.186-release/kernel/crypto/ctr.ko
+/lib/modules/4.4.186-release/kernel/crypto/gcm.ko
+/lib/modules/4.4.186-release/kernel/crypto/seqiv.ko
+/lib/modules/4.4.186-release/kernel/drivers
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers/usb
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers/usb/gadget
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers/usb/gadget/function
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers/usb/gadget/function/f_iap.ko
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers/usb/gadget/function/f_ium.ko
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers/usb/gadget/legacy
+/lib/modules/4.4.186-release/kernel/drivers/hcdrivers/usb/gadget/legacy/ium.ko
+/lib/modules/4.4.186-release/kernel/drivers/usb
+/lib/modules/4.4.186-release/kernel/drivers/usb/gadget
+/lib/modules/4.4.186-release/kernel/drivers/usb/gadget/libcomposite.ko
+/lib/modules/4.4.186-release/kernel/drivers/usb/gadget/function
+/lib/modules/4.4.186-release/kernel/drivers/usb/gadget/function/usb_f_mtp.ko
+/lib/modules/4.4.186-release/kernel/drivers/usb/gadget/function/usb_f_ptp.ko
+=== network
+ifconfig: socket: Address family not supported by protocol
+lo
+=== processes
+PID   USER     COMMAND
+    1 root     init
+    2 root     [kthreadd]
+    3 root     [ksoftirqd/0]
+    4 root     [kworker/0:0]
+    5 root     [kworker/0:0H]
+    6 root     [kworker/u2:0]
+    7 root     [rcu_preempt]
+    8 root     [rcu_sched]
+    9 root     [rcu_bh]
+   10 root     [kdevtmpfs]
+   11 root     [kworker/u2:1]
+  186 root     [writeback]
+  188 root     [crypto]
+  189 root     [bioset]
+  191 root     [kblockd]
+  291 root     [rpcwork0]
+  292 root     [rpcwork1]
+  293 root     [rpcwork2]
+  294 root     [rpcwork3]
+  295 root     [rpcwork4]
+  296 root     [rpcwork5]
+  297 root     [rpcwork6]
+  298 root     [rpcwork7]
+  300 root     [kworker/0:1]
+  307 root     [kswapd0]
+  308 root     [fsnotify_mark]
+  354 root     [kworker/u2:2]
+  356 root     [kworker/u2:3]
+  370 root     [spi32766]
+  374 root     [bioset]
+  379 root     [bioset]
+  385 root     [bioset]
+  390 root     [bioset]
+  395 root     [bioset]
+  445 root     [bioset]
+  446 root     [mmcqd/0]
+  469 root     [deferwq]
+  533 root     hcdaemon
+  542 root     [kworker/0:1H]
+  575 root     /bin/sh --
+  576 root     /tmp/cubegm/icube
+  578 root     rkgame
+  585 root     /usr/bin/cubevol
+  593 root     /bin/sh /mnt/sdcard/nzeus/start.sh
+  625 root     ps
+=== kernel log
+[    0.000000] Linux version 4.4.186-release (leo.xu@hichip01) (gcc version 6.3.0 (Codescape GNU Tools 2018.09-02 for MIPS MTI Linux) ) #23 PREEMPT Tue Jan 27 16:21:59 CST 2026
+[    0.000000] MIPS: machine is Hichip hc16xx
+[    0.000000] CPU0 revision is: 0001974c (MIPS 74Kc)
+[    0.000000] FPU revision is: 01739300
+[    0.000000] Determined physical RAM map:
+[    0.000000]  memory: 02f91e50 @ 00000000 (usable)
+[    0.000000] Initrd not found or empty - disabling initrd
+[    0.000000] Zone ranges:
+[    0.000000]   Normal   [mem 0x0000000000000000-0x0000000002f90fff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000000000-0x0000000002f90fff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000000000-0x0000000002f90fff]
+[    0.000000] On node 0 totalpages: 12177
+[    0.000000] free_area_init_node: node 0, pgdat 8047b440, node_mem_map 81020d20
+[    0.000000]   Normal zone: 96 pages used for memmap
+[    0.000000]   Normal zone: 0 pages reserved
+[    0.000000]   Normal zone: 12177 pages, LIFO batch:1
+[    0.000000] Primary instruction cache 32kB, VIPT, 4-way, linesize 32 bytes.
+[    0.000000] Primary data cache 32kB, 4-way, VIPT, cache aliases, linesize 32 bytes
+[    0.000000] pcpu-alloc: s0 r0 d32768 u32768 alloc=1*32768
+[    0.000000] pcpu-alloc: [0] 0 
+[    0.000000] Built 1 zonelists in Zone order, mobility grouping off.  Total pages: 12081
+[    0.000000] Kernel command line: root=/dev/ram0 rootfstype=ramfs rw init=/linuxrc console=tty1 earlycon= no_console_suspend noirqdebug
+[    0.000000] IRQ lockup detection disabled
+[    0.000000] PID hash table entries: 256 (order: -2, 1024 bytes)
+[    0.000000] Dentry cache hash table entries: 8192 (order: 3, 32768 bytes)
+[    0.000000] Inode-cache hash table entries: 4096 (order: 2, 16384 bytes)
+[    0.000000] Writing ErrCtl register=00000cb0
+[    0.000000] Readback ErrCtl register=00000cb0
+[    0.000000] Memory: 36368K/48708K available (3304K kernel code, 140K rwdata, 1148K rodata, 6792K init, 202K bss, 12340K reserved, 0K cma-reserved)
+[    0.000000] Preemptible hierarchical RCU implementation.
+[    0.000000] 	Build-time adjustment of leaf fanout to 32.
+[    0.000000] NR_IRQS:128
+[    0.000000] CPU Clock: 1188MHz
+[    0.000000] clocksource_probe: no matching clocksources found
+[    0.000000] clocksource: MIPS: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 3217610179 ns
+[    0.000006] sched_clock: 32 bits at 594MHz, resolution 1ns, wraps every 3615292415ns
+[    0.000252] Console: colour dummy device 80x25
+[    0.000842] console [tty1] enabled
+[    0.000888] Calibrating delay loop... 589.82 BogoMIPS (lpj=294912)
+[    0.009068] pid_max: default: 32768 minimum: 301
+[    0.009270] Mount-cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.009316] Mountpoint-cache hash table entries: 1024 (order: 0, 4096 bytes)
+[    0.012339] devtmpfs: initialized
+[    0.019432] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275000 ns
+[    0.019610] futex hash table entries: 256 (order: -1, 3072 bytes)
+[    0.019861] pinctrl core: initialized pinctrl subsystem
+[    0.020412] NET: Registered protocol family 16
+[    0.102877] SCSI subsystem initialized
+[    0.103251] usbcore: registered new interface driver usbfs
+[    0.103413] usbcore: registered new interface driver hub
+[    0.104345] usbcore: registered new device driver usb
+[    0.107719] clocksource: Switched to clocksource MIPS
+[    0.152517] NET: Registered protocol family 1
+[    0.273047] fuse init (API version 7.23)
+[    0.280675] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 253)
+[    0.280869] io scheduler noop registered (default)
+[    0.281118] Serial: 8250/16550 driver, 4 ports, IRQ sharing disabled
+[    0.284678] SCSI Media Changer driver v0.25 
+[    0.286658] ehci_hcd: USB 2.0 'Enhanced' Host Controller (EHCI) Driver
+[    0.286809] ohci_hcd: USB 1.1 'Open' Host Controller (OHCI) Driver
+[    0.287206] usbcore: registered new interface driver usb-storage
+[    0.288063] Synopsys Designware Multimedia Card Interface Driver
+[    0.289175] dw_mmc_hc 1884c000.mmc: num-slots property not found, assuming 1 slot is available
+[    0.289263] dw_mmc_hc 1884c000.mmc: fifo-depth property not found, using value of FIFOTH register as default
+[    0.289361] dw_mmc_hc 1884c000.mmc: host clk=198000000
+[    0.289399] dw_mmc_hc 1884c000.mmc: setup source clock : 0x3 (0x0:49MHZ 0x1:99Mhz 0x2:150Mhz 0x3:198Mhz)
+[    0.289454] dw_mmc_hc 1884c000.mmc: IDMAC supports 32-bit address mode.
+[    0.289511] dw_mmc_hc 1884c000.mmc: Using internal DMA controller.
+[    0.289566] dw_mmc_hc 1884c000.mmc: Version ID is 270a
+[    0.289638] dw_mmc_hc 1884c000.mmc: DW MMC controller at irq 10,32 bit host data width,128 deep fifo
+[    0.289889] dw_mmc_hc 1884c000.mmc: No vmmc regulator found
+[    0.289946] dw_mmc_hc 1884c000.mmc: No vqmmc regulator found
+[    0.294500] usbcore: registered new interface driver usbhid
+[    0.294564] usbhid: USB HID core driver
+[    0.322816] dw_mmc_hc 1884c000.mmc: 1 slots initialized
+[    0.323411] virtuart init ok
+[    0.324484] kshmdev init ok
+[    0.327422] m25p80 spi32766.0: found 25HD40, expected m25p80
+[    0.327500] m25p80 spi32766.0: 25HD40 (512 Kbytes)
+[    0.333243] 5 ofpart partitions found on MTD device spi32766.0
+[    0.333308] Creating 5 MTD partitions on "spi32766.0":
+[    0.333345] 0x000000000000-0x000000080000 : "nor"
+[    0.335461] 0x000000000000-0x000000061000 : "boot"
+[    0.338327] 0x000000061000-0x00000006a000 : "dtb"
+[    0.341287] 0x00000006a000-0x000000070000 : "eromfs"
+[    0.344104] 0x000000070000-0x000000080000 : "persistentmem"
+[    0.368518] fb node name: fb0!
+[    0.368578] fb0 enable!
+[    0.375444] fb node name: fb1!
+[    0.375505] fb1 enable!
+[    0.377799] ---> usb#0 reset
+[    0.383845] musb-hdrc: ConfigData=0xda (UTMI-8, bulk combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
+[    0.383866] musb-hdrc: MHDRC RTL version 2.0 
+[    0.383905] musb-hdrc musb-hdrc.0.auto: MUSB HDRC host driver
+[    0.383996] musb-hdrc musb-hdrc.0.auto: new USB bus registered, assigned bus number 1
+[    0.384251] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002
+[    0.384297] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.384347] usb usb1: Product: MUSB HDRC host driver
+[    0.384378] usb usb1: Manufacturer: Linux 4.4.186-release musb-hcd
+[    0.384411] usb usb1: SerialNumber: musb-hdrc.0.auto
+[    0.385653] hub 1-0:1.0: USB hub found
+[    0.385926] hub 1-0:1.0: 1 port detected
+[    0.386282] ---> usb#0 reset
+[    0.388620] mmc0: new high speed SDXC card at address aaaa
+[    0.391865] mmcblk0: mmc0:aaaa SR64G 59.5 GiB 
+[    0.393671] ---> usb#0 mode : 0x1 (0x1:host, 0x2:peripheral, 0x3:otg)
+[    0.393902] [decrypt_sector_data][1492] 0x69 0x96
+[    0.394123]  mmcblk0: p1
+[    0.399786] ---> usb#1 reset
+[    0.405020] musb-hdrc: ConfigData=0xda (UTMI-8, bulk combine, bulk split, HB-ISO Rx, HB-ISO Tx, SoftConn)
+[    0.405039] musb-hdrc: MHDRC RTL version 2.0 
+[    0.405077] musb-hdrc musb-hdrc.1.auto: MUSB HDRC host driver
+[    0.405164] musb-hdrc musb-hdrc.1.auto: new USB bus registered, assigned bus number 2
+[    0.405439] usb usb2: New USB device found, idVendor=1d6b, idProduct=0002
+[    0.405486] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    0.405535] usb usb2: Product: MUSB HDRC host driver
+[    0.405566] usb usb2: Manufacturer: Linux 4.4.186-release musb-hcd
+[    0.405598] usb usb2: SerialNumber: musb-hdrc.1.auto
+[    0.406819] hub 2-0:1.0: USB hub found
+[    0.406952] hub 2-0:1.0: 1 port detected
+[    0.407313] ---> usb#1 reset
+[    0.412471] ---> usb#1 mode : 0x1 (0x1:host, 0x2:peripheral, 0x3:otg)
+[    0.416904] reg_base: b8806000, reg_size: 8192, sys_reg_base: b8800000,  irq: 9
+[    0.419289] hcge 18806000.ge: Init GE success.
+[    0.420338] NET: Registered protocol family 17
+[    0.420480] NET: Registered protocol family 15
+[    0.434950] name:check_adc1
+[    0.435673] name:check_adc5
+[    0.466844] Freeing unused kernel memory: 6792K
+[    1.836329] [decrypt_sector_data][1492] 0x69 0x96
+[    3.093038] FAT-fs (mmcblk0p1): utf8 is not a recommended IO charset for FAT filesystems, filesystem will be case sensitive!
+[    3.102179] FAT-fs (mmcblk0p1): Volume was not properly unmounted. Some data may be corrupt. Please run fsck.
+[    5.856072] Adding 131068k swap on /mnt/sdcard/cubegm/pagefile.sys.  Priority:-1 extents:5 across:176832k SS
+[    6.595551] map ge register to userspace. off = 0
+[    6.886780] random: nonblocking pool is initialized
+[    8.103900] map ge register to userspace. off = 0
+[   23.315332] map ge register to userspace. off = 0
+128+0 records in
+128+0 records out
+97+0 records in
+97+0 records out
+9+0 records in
+9+0 records out
+6+0 records in
+6+0 records out
+16+0 records in
+16+0 records out
