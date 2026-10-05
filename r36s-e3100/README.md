@@ -1,4 +1,4 @@
-# R36S (yellow clone) - HC16xx E3100 board: NOR dump + stock kernel info
+# R36S clone - HC16xx E3100 board: NOR dump + stock kernel info
 
 Board: **HC16E3100V20** (string in NOR; DTB model "Hichip hc16xx", `hc1600a@dbE3100v20`),
 sold as "R36S V2.7", 640x480 screen. Stock firmware: H.OS / cubegm.
@@ -38,11 +38,24 @@ The bytes patched by `patch_mtd_enable_hcprogrammer_on_usb0_usb1.c`
 Both MUSB ports (18844000.usb, 18850000.usb) work as host with the stock 4.4 kernel.
 Tested with out-of-tree modules built against the hclinux-2024.02.y.2 SDK:
 USB keyboard + mouse, CH340/PL2303 serial, RTL8821CU Wi-Fi/BT dongle (BL-WN650BT, 0bda:c820).
-The vendor 8821cu driver hard-freezes the SoC 15-60 s after load (no oops; `panic_on_oops=1`
-and `panic=3` do not trigger a reboot) - still under investigation (power or USB).
+
+### Wi-Fi freeze
+It wasn't the driver. The stock `/bin/hcdaemon` checks `/proc/net/dev` every 60 s and when it
+sees an interface other than `lo` it writes the name to `/dev/ZZd2C`, and that freezes the console.
+Bind-mounting an empty file over `/proc/<hcdaemon pid>/net/dev` (or just SIGSTOP on hcdaemon)
+fixes it. Wi-Fi has been running for hours since (morrownr 8821cu driver).
+`poweroff` gives the same blue screen because the mount goes away. Stock powers off with
+`/mnt/sdcard/cubegm/powergpio` instead (from TreeFrogUI's shutdown.sh).
+
+### Bluetooth
+Works now. Firmware upload with the 4.19 btrtl failed with `command 0xfc20 tx timeout`.
+The 8821C firmware is 139 chunks and the 7-bit chunk index hits 0x80 (= last chunk) at chunk 128.
+The fix from 5.2: `index = (i > 0x7f) ? (i & 0x7f) + 1 : i`.
+After a failed upload the chip stays stuck until you unplug the dongle, a reboot doesn't reset it.
 
 ## Teardown
-Photos in `teardown/` (r36s-e3100-1..7.jpg, full resolution). What's on the board:
+Photos in `teardown/`. Microscope + phone close-ups in `closeups/`.
+What's on the board:
 - PCB silkscreen: **R36S-V2.7 (2026.01.09)**
 - SoC: HC16xx in LQFP (top marking is just a logo)
 - DDR: **NANYA NT5CB128M16HP-EK** (note: HP, not FP like the SF3000's NT5CB128M16FP-EK -
