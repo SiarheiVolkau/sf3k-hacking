@@ -54,7 +54,7 @@ dd if=/dev/mtd0 of=/mnt/sdcard/mtd0.dump
 ```
 to the [zhijack.sh](zhijack.sh). After booting the device once the file will be stored on SD-card.
 
-I've extracted [spl.bin](spl.bin) from [mtd0.dump](mtd0.dump) by 
+I've extracted [spl.bin](spl.bin) from [mtd0.dump](spinor-dumps/SF3000-E-V1.0(2026.01.06)/mtd0.dump) by 
 ```bash
 dd if=mtd0.dump of=spl.bin bs=1 count=16k
 ```
@@ -92,7 +92,7 @@ NOTE: don't try loading to/from cacheable regions.
 
 ### DRAM initialization 
 
-Since USB protocol activated prior DDR initialization it is required to restore DDR initialization routine from SPL. With help of Ghidra I have restored that for mine device. It turns out to be implemented as a tiny command interpreter and a list/array of commands in the data section. Exact register manipulation was restored as a C source file [nanya_nt5cb128m16fp-ek.c](nanya_nt5cb128m16fp-ek.c) how to build it you can see in [build-ddr-bin.sh](build-ddr-bin.sh) file. 
+Since USB protocol activated prior DDR initialization it is required to restore DDR initialization routine from SPL. With help of Ghidra I have restored that for mine device. It turns out to be implemented as a tiny command interpreter and a list/array of commands in the data section. Exact register manipulation was restored as a C source file [nanya_nt5cb128m16xp-ek.c](nanya_nt5cb128m16xp-ek.c) how to build it you can see in [build-ddr-bin.sh](build-ddr-bin.sh) file. 
 
 ### TPL loader
 
