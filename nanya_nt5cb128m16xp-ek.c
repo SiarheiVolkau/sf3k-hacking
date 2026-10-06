@@ -1,5 +1,9 @@
-// DDR IC: Nanya NT5CB128M16FP-EK DDR3 (1.5V), 256MB 128M/16, 1866-13-13-13, 1600-11-11-11
-// PCB ID: SF3000-E-V1.0(2026.01.06)
+// Compatible parts:
+// 1. DDR IC: Nanya NT5CB128M16FP-EK DDR3 (1.5V), 256MB 128M/16, 1866-13-13-13, 1600-11-11-11
+//    PCB ID: SF3000-E-V1.0(2026.01.06)
+// 2. DDR IC: Nanya NT5CB128M16HP-EK DDR3 (1.5V), 256MB 128M/16, 1866-13-13-13, 1600-11-11-11
+//    PCB ID: RS36S-V2.7(2026.01.09)
+
 #include <stdint.h>
 #include "mmio.h"
 
@@ -10,7 +14,7 @@ static void busy_wait(uint32_t counter)
         }
 }
 
-void ddr_init_nanya_nt5cb128m16fp_ek () {
+void ddr_init_nanya_nt5cb128m16xp_ek () {
         REG8(0xB8800074)  = 0x10;
         REG8(0xB8800076)  = 0x20;
         busy_wait(10);
@@ -95,6 +99,6 @@ void ddr_init_nanya_nt5cb128m16fp_ek () {
 
 int main()
 {
-        ddr_init_nanya_nt5cb128m16fp_ek();
+        ddr_init_nanya_nt5cb128m16xp_ek();
         return 0;
 }

@@ -2,7 +2,7 @@ OUTPUT_ARCH(mips)
 
 MEMORY
 {
-	IRAM      (xrw)  : ORIGIN = 0xa0000000,   LENGTH = 256M
+	IRAM      (xrw)  : ORIGIN = 0xa0000000,   LENGTH = 192M
 }
 
 SECTIONS
