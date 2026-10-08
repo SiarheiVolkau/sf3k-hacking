@@ -1,0 +1,12 @@
+           CPU0       
+  7:      29486      MIPS   7  timer
+  9:         75   sys_irq   4  18806000.ge
+ 10:       5303   sys_irq  10  dw-mci
+ 11:          0   sys_irq   0  18800044.gpio, 188000c4.gpio, 188000e4.gpio, 18800344.gpio
+ 35:          2   sys_irq  35  1882e000.spi
+ 50:          0   sys_irq  50  musb-hdrc.1.auto
+ 51:          0   sys_irq  51  musb-hdrc.1.auto
+ 52:          0   sys_irq  52  musb-hdrc.0.auto
+ 53:          0   sys_irq  53  musb-hdrc.0.auto
+ 66:       1374   sys_irq  66  18800800.amprpc
+ERR:          0
