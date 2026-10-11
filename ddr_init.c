@@ -144,6 +144,13 @@ static void ddr3_init(enum ddr3_size size, enum ddr3_freq freq)
         REG32(0xB88018A4) = 0x88880F00;
         REG32(0xB88018A8) = 0xFFFFFFFF;
         busy_wait(0x200);
+
+/* This allows address all 256Mb of RAM, instead of 192Mb.
+ * But vendor bootloader won't boot if set, so default disabled */
+#if 0
+        /* remap SFLASH XIP window to 0xBF000000 */
+        REG32(0xB8800220) |= BIT(24);
+#endif
 }
 
 #ifndef SZ
