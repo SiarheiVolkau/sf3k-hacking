@@ -92,7 +92,7 @@ NOTE: don't try loading to/from cacheable regions.
 
 ### DRAM initialization 
 
-Since USB protocol activated prior DDR initialization it is required to restore DDR initialization routine from SPL. With help of Ghidra I have restored that for mine device. It turns out to be implemented as a tiny command interpreter and a list/array of commands in the data section. Exact register manipulation was restored as a C source file [nanya_nt5cb128m16xp-ek.c](nanya_nt5cb128m16xp-ek.c) how to build it you can see in [build-ddr-bin.sh](build-ddr-bin.sh) file. 
+Since USB protocol activated prior DDR initialization it is required to restore DDR initialization routine from SPL. With help of Ghidra I have restored that for mine device. It turns out to be implemented as a tiny command interpreter and a list/array of commands in the data section. Exact register manipulation was restored as a C source file [ddr_init.c](ddr_init.c) how to build it you can see in [build-ddr-bin.sh](build-ddr-bin.sh) file. Lately I've found that the commands are equal to vendor's DDR3_1066 settings and seems not depending on DDR chip parameters. I've added all DDR3 vendor presets in the [ddr_init.c](ddr_init.c) and test them on SF3000 - DDR3_1600 works well with mine DDR chip (Nanya NT5CB128M16XP-EK).
 
 ### TPL loader
 
@@ -105,10 +105,96 @@ On flash it stored right after SPL.
 
 TPL itself does:
 * set some obscure bits in CP0
-* disables MMU, effectively enabling plain memory model.
+* disables MMU
 * clears caches
-* relocates rest of itself to a new place in cacheable memory.
-... and many more I didn't decode because of no intention.
+* unpacks rest of itself to a new place in cacheable memory
+  at address 0x89da0000
+* jumps into it at 0x89da0000
+
+The packed content of TPL is a vendor's firmware built on top of SDK's `bootloader` application.
+
+## Bootloader
+
+Bootloader is derived from avp bootloader application from HCRTOS SDK (HCLINUX also have it).
+It utilizes FreeRTOS with elements of NuttX inside and linked with libviddrv and libmipidrv
+so display subsystem is initialized first here.
+
+Bootloader has embedded device tree blob, which is identical to others. It seems exploitable to
+modify device tree inside bootloader, instead of dtb.bin on SD-card (which won't boot then),
+pack it back to TPL and program Serial flash. I'm able to run bootloader with original and modified
+dtb via USB and it boots correctly up to the linux/cubegm.
+
+So I tried to enable logging to console in bootloader this way:
+1. find location and size of the embedded dtb blob inside bootloader file.
+   in my case it is located at offset 604864 with size 34816 bytes.
+   See original [bootloader.bin](spinor-dumps/SF3000-E-V1.0(2026.01.06)/bootloader.bin).
+2. extract it via `dd`:
+```sh
+dd if=bootloader.bin of=bootloader.dtb bs=1 skip=604864 count=34816
+```
+   See extracted DTB [bootloader.dtb](spinor-dumps/SF3000-E-V1.0(2026.01.06)/bootloader.dtb).
+3. Decompile it via `dtc`:
+```sh
+dtc -Idtb -Odts bootloader.dtb > bootloader.dts 2 > /dev/null
+```
+   See DT source [bootloader.dts](spinor-dumps/SF3000-E-V1.0(2026.01.06)/bootloader.dts).
+4. Modify it in the following way:
+   * remove `/hcrtos/uart@3` and `/hcrtos/uart@2` nodes to get more space for modifications.
+   * add `/hcrtos/uart@0` node as follows:
+```dts
+		uart@0 {
+			devpath = "/dev/uart0";
+			status = "okay";
+			tx-gpios = <12>;
+		};
+```
+   * modify `/hcrtos/boot-stdio/serial0` to point to the UART0.
+``` dts
+		boot-stdio {
+			serial0 = "/hcrtos/uart@0";
+		};
+```
+   That's it, now the log will be outputted to L12 pin at 9600 baudrate*.
+
+   Disclaimer: The normal UART driver doesn't work by unknown reason.
+   But `tx-gpios` property activates GPIO-bitbanging UART implementation
+   which works but only Tx and only low 9600 rate.
+5. Save the modified source as `bootloader_m.bin`.
+6. Compile it back to DTB:
+```sh
+dtc -Idts -Odtb bootloader_m.dts > bootloader_m.dtb  2>/dev/null
+```
+   Note: `2>/dev/null` effectively hides a lot of warnings, but also
+   errors (if any).
+7. Ensure that new `bootloader_m.dtb` **size is same or less** than
+   original `bootloader.dtb`.
+8. add padding bytes to get same size as original `bootloader.dtb`:
+```sh
+truncate -s 34816 bootloader_m.dtb
+```
+9. Embed modified DTB back into `bootloader.bin` via dd:
+```sh
+cp bootloader.bin bootloader_m.bin
+dd if=bootloader_m.dtb of=bootloader_m.bin conv=notrunc bs=1 seek=604864
+```
+With this modified bootloader I've grabbed the boot log up to the kernel start.
+See [bootloader.log](spinor-dumps/SF3000-E-V1.0(2026.01.06)/bootloader.log).
+
+### multiple_init
+
+Some notes about `/hcrtos/multiple_init` handling by bootloader:
+Main reason is to handle various connected DSI panels/panel controllers.
+Effectively enabling one firmware for different hardware parts.
+
+BL executes initial DSI initialization sequence from `/hcrtos/dsi0`
+during normal modules initialization.
+Then it reads panel ID (DCS register 04 first byte) and looks for 
+`display@ID` node in `/hcrtos/multiple_init`. If found it grabs new
+settings from that node (panel init sequence, timings, etc) and applies
+them via MIPI library ioctl calls.
+
+This feature looks new to vendor's SDK and in leaked HCRTOS/HCLINUX it
+is absent.
 
 ## Linux loader
 

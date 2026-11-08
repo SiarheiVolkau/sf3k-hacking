@@ -7,6 +7,7 @@
 
 #include <stdint.h>
 #include "mmio.h"
+#include "system_regs.h"
 
 enum ddr3_size {
         DDR3_SIZE_256,
@@ -27,8 +28,8 @@ enum ddr3_freq {
 
 /* Registers that differ depending on frequency, indexed by enum ddr3_freq */
 /*                                        600         800         1066        1200        1333        1600 */
-static const uint16_t r_B880048A[]  = { 0x8019,     0,          0,          0x8032,     0,          0          }; /* 0 = not used, 74/76 are written instead */
-static const uint8_t  r_B8800074[]  = { 0,          0x00,       0x10,       0,          0x20,       0x30       }; /* unused for 600 and 1200 */
+static const uint16_t r_DDRPLL[]    = { 0,          0,          0,          0x8032,     0,          0          }; /* 0 = not used, 74/76 are written instead */
+static const uint8_t  r_SYSIO_074[] = { 0x40,       0x00,       0x10,       0,          0x20,       0x30       }; /* unused for 1200 */
 static const uint8_t  r_B880108C[]  = { 0x00,       0x00,       0x01,       0x12,       0x12,       0x13       };
 static const uint32_t r_B883E05C[]  = { 0x00,       0x00,       0x08,       0x10,       0x10,       0x18       };
 static const uint32_t r_B883E054[]  = { 0x1520,     0x1520,     0x1930,     0x1B50,     0x1B50,     0x1D70     };
@@ -60,11 +61,11 @@ static void ddr3_init(enum ddr3_size size, enum ddr3_freq freq)
         if (r_B8801000[size][freq] == 0)
                 return;
 
-        if (r_B880048A[freq]) {
-                REG16(0xB880048A) = r_B880048A[freq];
+        if (r_DDRPLL[freq]) {
+                REG16(REG_DDRPLL) = r_DDRPLL[freq];
         } else {
-                REG8(0xB8800074)  = r_B8800074[freq];
-                REG8(0xB8800076)  = 0x20;
+                REG8(REG_SYSIO_074)  = r_SYSIO_074[freq];
+                REG8(REG_SYSIO_076)  = 0x20;
         }
         busy_wait(0x10);
         REG8(0xB880108C)  = r_B880108C[freq];
@@ -149,7 +150,7 @@ static void ddr3_init(enum ddr3_size size, enum ddr3_freq freq)
  * But vendor bootloader won't boot if set, so default disabled */
 #if 0
         /* remap SFLASH XIP window to 0xBF000000 */
-        REG32(0xB8800220) |= BIT(24);
+        REG32(REG_SYSIO_220) |= BIT(24);
 #endif
 }
 

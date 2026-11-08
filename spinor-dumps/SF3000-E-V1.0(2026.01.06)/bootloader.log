@@ -1,0 +1,99 @@
+JEDEC id bytes:: 0000-0010: B3 60 13 B3 60 13                                   .`..`.
+Flash Geometry:
+  blocksize:      4096
+  erasesize:      4096
+  neraseblocks:   128
+  chipsize:       0x80000
+mipi default off : 1
+VER:VIDDRIVER(Dec 26 2024 15:10:57)
+get tvtype in sysdata fail,from dts:15
+KdwaYewCiBETqFZPvtZFqORuSKMqoSzp 0
+b_hdmi_output = 1
+
+==========<yibqAKNaVmCcTKvHSZvzVmCaSXyqOOfS>-Into
+
+==========<yibqAKNaVmCcTKvHSZvzVmCaSXyqOOfS>-Into
+b_hdmi_output = 1
+fbdev->static_header: 0x8af92000
+fbdev->fb_mem: 0x8af93000
+fbdev->fb_phys: 0af93000
+layer_size: 00e0fe50
+Failed to probe node: /hcrtos/backlight1
+
+DDR Info:
+        type:DDR3
+        size:256M
+        freq:1066MHz
+
+time to boot: 5051
+mipi_rd data[0]=0x0
+mipi_rd data[1]=0x0
+mipi_rd data[2]=0x0
+path: /hcrtos/multiple_init/display@0/dsi0
+path: /hcrtos/multiple_init/display@0/timing-para
+lcd_multiple_get_display_info 218
+path: /hcrtos/multiple_init/display@0/panel
+lcd_multiple_set_timing_init 313
+lcd_multiple_detiming_init 292
+KdwaYewCiBETqFZPvtZFqORuSKMqoSzp 0
+lcd_multiple_set_dsitiming_init 262
+mounted mmcblk0p2 on /media/mmcblk0p2
+ERROR: mount fail: -13
+ERROR: Bind method failed: -2
+mount vfat fail /dev/mmcblk0p3, try ntfs
+ERROR: Failed to find block based file system ntfs
+mount ntfs fail /dev/mmcblk0p3
+Width: 480 pixels
+Height: -854 pixels
+[hudi]scale : 255
+[hudi]pwmdev : /dev/pwm0
+[hudi]frequency : 100000
+[hudi]levels_count : 256
+[hudi]default_brightness_level : 153
+[hudi]range : 0 - 255
+booting hclinux dualcore firmware
+double register detectedtotal 35060 bytes read to 0x89f67000
+total 36864 bytes read to 0x89f57000
+power-button: 160
+power-pin: 160
+lcd_multiple_uptate_dt 373
+double register detecteddouble register detecteddefault image load address = 0x89f7b000
+Decrypt done, img_size = 1381815
+*  kernel: default image load address = 0x89f7b010
+## Booting kernel from Legacy Image at 89f7b010 ...
+   Image Name:   avp
+   Image Type:   RISC HC-BOOT Standalone Program (gzip compressed)
+   Data Size:    1381751 Bytes = 1.3 MiB
+   Load Address: 8bda4000
+   Entry Point:  8bda4000
+   Verifying Checksum ...
+OK
+
+   kernel data at 0x89f7b050, len = 0x00151577 (1381751)
+   Uncompressing Standalone Program
+   kernel loaded at 0x8bda4000, end = 0x8c0292c8
+double register detecteddefault image load address = 0x8a0cd000
+Decrypt done, img_size = 3959401
+*  kernel: cmdline image address = 0x8a0cd010
+## Booting kernel from Legacy Image at 8a0cd010 ...
+   Image Name:   vmlinux
+   Image Type:   RISC Linux Kernel Image (gzip compressed)
+   Data Size:    3959337 Bytes = 3.8 MiB
+   Load Address: 80000000
+   Entry Point:  803337c0
+   Verifying Checksum ...
+OK
+
+   kernel data at 0x8a0cd050, len = 0x003c6a29 (3959337)
+## Skipping init Ramdisk
+## No init Ramdisk
+   ramdisk start = 0x00000000, ramdisk end = 0x00000000
+*  fdt: cmdline image address = 0x89f57000
+## Checking for 'FDT'/'FDT Image' at 89f57000
+*  fdt: raw FDT blob
+## Flattened Device Tree blob at 89f57000
+   Booting using the fdt blob at 0x89f57000
+   of_flat_tree at 0x89f57000 size 0x000088f4
+   Uncompressing Kernel Image
+   kernel loaded at 0x80000000, end = 0x80b23360
+## Transferring control to Linux (at address 0x803337c0) ...
