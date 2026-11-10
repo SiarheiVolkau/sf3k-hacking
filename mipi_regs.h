@@ -9,24 +9,25 @@
 #define MIPI_CTRL_BASE      0xb884a000
 
 #define MIPI_CTRL_BASE       0xb884a000
-#define REG_MIPI_DSI_REG_04  (MIPI_CTRL_BASE + 0x0004)
+#define REG_MIPI_DSI_VERSION (MIPI_CTRL_BASE + 0x0000)
+#define REG_MIPI_DSI_REG_PWRUP (MIPI_CTRL_BASE + 0x0004)
 #define REG_MIPI_DSI_REG_08  (MIPI_CTRL_BASE + 0x0008)
 #define REG_MIPI_DSI_REG_0C  (MIPI_CTRL_BASE + 0x000c)
 #define REG_MIPI_DSI_REG_10  (MIPI_CTRL_BASE + 0x0010)
 #define REG_MIPI_DSI_REG_14  (MIPI_CTRL_BASE + 0x0014)
 #define REG_MIPI_DSI_PCKHDL  (MIPI_CTRL_BASE + 0x0018)
-#define REG_MIPI_DSI_FLAGS   (MIPI_CTRL_BASE + 0x001C)
-#define REG_MIPI_DSI_REG_20  (MIPI_CTRL_BASE + 0x0020)
+#define REG_MIPI_DSI_MODECFG (MIPI_CTRL_BASE + 0x001C)
+#define REG_MIPI_DSI_VIDPKTSIZE (MIPI_CTRL_BASE + 0x0020)
 #define REG_MIPI_DSI_REG_24  (MIPI_CTRL_BASE + 0x0024)
 #define REG_MIPI_DSI_REG_28  (MIPI_CTRL_BASE + 0x0028)
 #define REG_MIPI_DSI_REG_2C  (MIPI_CTRL_BASE + 0x002c)
 #define REG_MIPI_DSI_REG_30  (MIPI_CTRL_BASE + 0x0030)
-#define REG_MIPI_DSI_REG_34  (MIPI_CTRL_BASE + 0x0034)
-#define REG_MIPI_DSI_REG_38  (MIPI_CTRL_BASE + 0x0038)
-#define REG_MIPI_DSI_REG_3C  (MIPI_CTRL_BASE + 0x003c)
+#define REG_MIPI_DSI_GEN_HDR (MIPI_CTRL_BASE + 0x0034)
+#define REG_MIPI_DSI_GEN_PLD_DATA (MIPI_CTRL_BASE + 0x0038)
+#define REG_MIPI_DSI_CMD_PKT_STATUS (MIPI_CTRL_BASE + 0x003c)
 #define REG_MIPI_DSI_REG_48  (MIPI_CTRL_BASE + 0x0048)
 #define REG_MIPI_DSI_REG_54  (MIPI_CTRL_BASE + 0x0054)
-#define REG_MIPI_DSI_REG_58  (MIPI_CTRL_BASE + 0x0058)
+#define REG_MIPI_DSI_PHY_IF_CFG (MIPI_CTRL_BASE + 0x0058)
 #define REG_MIPI_DSI_REG_5C  (MIPI_CTRL_BASE + 0x005c)
 #define REG_MIPI_DSI_REG_60  (MIPI_CTRL_BASE + 0x0060)
 
@@ -53,22 +54,33 @@
 
 /*
  * Recovered MIPI registers:
- * REG_04:
- *       [0]: power enable DSI host controller, 1 - enable
+ * VERSION: dumped as 0x31303100 which looks close to Synopsys version numbering v1.01.
+ *          However Synopsys driver works with v1.31 and others (v1.30 confirmed).
+ * REG_PWR_UP:
+ *       [0]: power enable DSI host controller, 1 - enable. matches Synopsys.
  *
  * REG_08:
  *     [7:0]: uncovered field, likely control field, set to 0x07 at init.
  *    [15:8]: uncovered field, likely control field, set to 0x01 at init.
+ * SF3000 dump: 0x00000103
  *
  * REG_0C:
  *     [1:0]: uncovered DPI config parameter, vendor sets it to 0 always.
  *     [4:2]: DSI format for DPI bus (likely input for DSI host) same as for VIDEO_XBAR_CTRL2[22:20]
+ *            Synopsys driver calls it DPI color coding with these values (position not match):
+ *            0x00 - DPI_COLOR_CODING_16BIT_1
+ *            0x01 - DPI_COLOR_CODING_16BIT_2
+ *            0x02 - DPI_COLOR_CODING_16BIT_3
+ *            0x03 - DPI_COLOR_CODING_18BIT_1
+ *            0x04 - DPI_COLOR_CODING_18BIT_2
+ *            0x05 - DPI_COLOR_CODING_24BIT
  *       [5]: uncovered DPI config parameter, vendor sets it to 0 always.
  *       [6]: set to 1 if DPI vsync is active high (change polarity?)
  *       [7]: set to 1 if DPI hsync is active high
  *       [8]: uncovered DPI config parameter, vendor sets it to 0 always.
  *       [9]: uncovered DPI config parameter, vendor sets it to 0 always.
  *      [10]: set to 1 for RGB666 DSI formats
+ * SF3000 dump: 0x00000014
  *
  * REG_10:
  *     [1:0]: uncovered DBI config parameter, vendor sets it to 1 always.
@@ -76,12 +88,14 @@
  *     [7:6]: uncovered DBI config parameter, vendor sets it to 1 always.
  *       [8]: uncovered DBI config parameter, vendor sets it to 0 always.
  *    [12:9]: uncovered DBI config parameter, vendor sets it to 0 always.
+ * SF3000 dump: 0x00000000
  *
  * REG_14:
  *    [15:0]: configures command size, vendor sets it to 26
  *   [31:16]: configures command size, vendor sets it to 10
+ * SF3000 dump: 0x00000000
  *
- * PCKHDL:
+ * PCKHDL: Bits [4:0] match Synopsys but not reg offset.
  *       [0]: Enables EOTp transmission.
  *       [1]: Enables EOTp reception.
  *       [2]: MIPI_Bus_Turn_request.
@@ -89,8 +103,9 @@
  *       [4]: Enables CRC reception and error reporting.
  *     [6:5]: Generic interface read-back Virtual Channel identification.
  *   default value: 0x1c vendor provides it via "dsi,cfg" dt prop.
+ * SF3000 dump: 0x0000001C
  *
- * FLAGS:
+ * MODECFG: Bits [8:1] match Synopsys but not position in register,bit[0] present but in another register.
  *       [0]: Enables DPI Video mode transmission
  *     [2:1]: Selects video mode transmission type. 0: Non-burst with Sync pulses; 1: Non-burst with Sync events; 2-3: Burst with Sync pulses.
  *       [3]: Enables return to Low Power inside VSA period when timing allows
@@ -103,59 +118,80 @@
  *      [10]: Enables the transmission of null packets in the HACT period
  *      [11]: Enables the request for an acknowledge response at the end of a frame
  *      vendor's "dsi,flags" dt property defines defaults to entire register. Actual default is 0x3fd
+ * SF3000 dump: 0x000003FD
  *
- * REG_20:
+ * VIDPKTSIZE: Matches Synopsys register VIDPKTSIZE but not offset.
  *    [10:0]: hactive
  *   [20:11]: uncovered field, set to 0 at init
  *   [30:21]: uncovered field, set to 0 at init
+ * SF3000 dump: 0x000001E0
  *
  * REG_24:
  *    [15:0]: command or data mode. 0x1fff: command mode 0x4000: data mode
+ * SF3000 dump: 0x00004000
  *
  * REG_28:
  *     [8:0]: hsync in byte clocks: hsync * bit_period / byte_period
  *    [17:9]: hbp in byte clocks
  *   [31:18]: htotal in byte clocks
+ * SF3000 dump: 0x0E587806
  *
  * REG_2C:
  *     [3:0]: vsync
  *     [9:4]: vbp
  *   [15:10]: vfp
  *   [26:16]: vactive
+ * SF3000 dump: 0x03565144
  *
  * REG_30:
  *    [11:0]: uncovered field, set to 0x000 at init.
  *   [19:12]: uncovered field, set to 0x28 at init.
  *   [27:20]: uncovered field, set to 0x28 at init.
+ * SF3000 dump: 0x02828000
  *
- * REG_34:
+ * GEN_HDR: Matches Synopsys but not offset.
  *    [23:0]: dcs header, write to start command. [7:0] - data identifier, [15:8] - data0, [23:16] - data1
  *   [31:24]: reserved, write zero. ECC is calculated in hardware.
+ * SF3000 dump: 0x00002905
  *
- * REG_38:
+ * GEN_PLD_DATA: Matches Synopsys but not offset.
  *    [31:0]: dcs FIFO, depth unknown.
  *            for read operation wait for completion first then read FIFO.
  *            for write op write all data first before writing header.
+ * SF3000 dump: 0x00000000
  *
- * REG_3C:
- *       [6]: dcs read operation completion bit.
+ * CMD_PKT_STATUS: Matches Synopsys but not offset.
+ *       [6]: dcs read operation completion bit. Synopsys GEN_RD_CMD_BUSY.
+ *       [5]: Payload Rx FIFO full. Synopsys' GEN_PLD_R_FULL.
+ *       [4]: Payload Rx FIFO empty. Synopsys' GEN_PLD_R_EMPTY.
+ *       [3]: Payload Tx FIFO full. Synopsys' GEN_PLD_W_FULL.
+ *       [2]: Payload Tx FIFO empty. Synopsys' GEN_PLD_W_EMPTY.
+ *       [1]: Command FIFO full. Synopsys' GEN_CMD_FULL.
+ *       [0]: Command FIFO empty. Synopsys' GEN_CMD_EMPTY.
+ * SF3000 dump: 0x00000015
+ *
  * REG_48:
- *    [17:0]: dcs write operation status bits, only [17] checked by vendor, likely completion bit.
+ *    [17:0]: dcs write operation status bits, only [17] checked by vendor, likely error bits.
+ * SF3000 dump: 0x00000880
  *
  * REG_54:
  *       [0]: uncovered bit, set to 1 at init.
  *       [1]: uncovered bit, set to 1 at init.
  *       [2]: uncovered bit, set to 1 at init.
+ * SF3000 dump: 0x00000007
  *
- * REG_58:
+ * PHY_IF_CFG:
  *     [1:0]: num active data lanes minus one (0:1-lane 1:2-lanes 2:3-lanes 3:4-lanes)
+ * SF3000 dump: 0x00000001
  *
  * REG_5C:
  *       [0]: enable high speed clock, 1 - enable
+ * SF3000 dump: 0x00000001
  *
  * REG_60: - labelled as PHY_STATUS by vendor.
  *    [12:0]: uncovered field, likely read-to-clear, likely error bits.
  *            bit [4] is used to detect no data readed during dcs read command(s).
+ * SF3000 dump: 0x00001F29
  *
  * PHY_100:
  *       [0]: set to 1

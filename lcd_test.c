@@ -41,14 +41,14 @@ static void UART0_puts(const char *s)
 static const char h[]="0123456789ABCDEF";
 static void __maybe_unused UART0_puthex32(uint32_t v)
 {
-    for (int i = 28; i >= 0; i -= 4)
-        UART0_putc(h[(v >> i) & 0xf]);
+        for (int i = 28; i >= 0; i -= 4)
+                UART0_putc(h[(v >> i) & 0xf]);
 }
 
 static void __maybe_unused UART0_puthex8(uint8_t v)
 {
-    for (int i = 4; i >= 0; i -= 4)
-        UART0_putc(h[(v >> i) & 0xf]);
+        for (int i = 4; i >= 0; i -= 4)
+                UART0_putc(h[(v >> i) & 0xf]);
 }
 
 static void usb_disable(void)
@@ -136,7 +136,22 @@ static void backlight_init(void)
 
 
 
+const uint32_t hactive = 480;
+const uint32_t hfp = 88;
+const uint32_t hsync = 4;
+const uint32_t hbp = 40;
+const uint32_t htotal = 480 + 88 + 4 + 40;
+const uint32_t cpp = 2;
 
+const uint32_t vactive = 854;
+const uint32_t vfp = 20;
+const uint32_t vsync = 4;
+const uint32_t vbp = 20;
+const uint32_t vtotal  = 854 + 20 + 4 + 20;
+
+const uint32_t n_dsi_lanes = 2;
+const uint32_t bpp = 24;
+#define HCOMPONENT_TO_LBCC(hcmp) (bpp * (hcmp) / (n_dsi_lanes * 8))
 
 static void mipi_dsi_host_init(void)
 {
@@ -221,34 +236,31 @@ static void mipi_dsi_host_init(void)
         REG32(REG_MIPI_LANE(MIPI_DSI_LANE_CLK,MIPI_DSI_LANE_REG_10)) = 0x800A0308;
         //hc_mipi_bus_dcs_cmd_param()
         //hc_mipi_bus_config_dpi()
-        REG32(REG_MIPI_DSI_REG_0C) = 0x00000014;
-        //REG32(REG_VIDEO_XBAR_CTRL1) = 0x00010000;
-        //REG32(REG_VIDEO_XBAR_CTRL2) = 0x00510001;
-        //REG32(REG_VIDEO_XBAR_CTRL3) = 0x00000000;
-        //REG32(REG_VIDEO_XBAR_CTRL2) = (REG32(REG_VIDEO_XBAR_CTRL2) & 0xff8fffff) | (5 << 0x14); // 5 - dsi format rgb888
-        REG32(REG_MIPI_DSI_REG_08) = (REG32(REG_MIPI_DSI_REG_08) & 0xffff0000) | (0x01 << 8) | 0x07;
+        REG32(REG_MIPI_DSI_REG_0C) = (5 << 2); // DPI format 24-bit, DSI format is the same.
+        REG32(REG_MIPI_DSI_REG_08) = (REG32(REG_MIPI_DSI_REG_08) & 0xffff0000)
+                                   | (0x01 << 8) | 0x03; // 0x03 taken from SF3000 dump DCS read became stable. Initiall value 0x07.
         //hc_mipi_bus_config_dbi()
         REG32(REG_MIPI_DSI_REG_10) = BIT(6) | BIT(0); // ??? - reconstruct sets at least 2 bits BIT(0) | BIT(6)
         //hc_mipi_bus_config_cmd_size()
         REG32(REG_MIPI_DSI_REG_14) = (10 << 16) | 0x1a; // ??? - reconstruct sets (10 << 16) | 0x1a;
         //hc_mipi_bus_config_PCKHDL()
         REG32(REG_MIPI_DSI_PCKHDL) = 0x0000001C;
-        REG32(REG_MIPI_DSI_REG_20) = 0; // actually there's 3 fields
+        REG32(REG_MIPI_DSI_VIDPKTSIZE) = 0; // actually there's 3 fields
         //hc_mipi_bus_enable_cmd_mode()
         REG32(REG_MIPI_DSI_REG_24) = 0x1fff;
         //hc_mipi_bus_config_package(0, {0})
         REG32(REG_MIPI_DSI_REG_28) = 0;
         REG32(REG_MIPI_DSI_REG_2C) = 0;
-        REG32(REG_MIPI_DSI_REG_20) = 0;
+        REG32(REG_MIPI_DSI_VIDPKTSIZE) = 0;
         REG32(REG_MIPI_DSI_REG_30) = (0x28 << 20) | (0x28 << 12) | 0 << 0; // inexact
-        REG32(REG_MIPI_DSI_REG_58) = (REG32(REG_MIPI_DSI_REG_58) & ~0x3) | 1; // 1 = data_lanes - 1
+        REG32(REG_MIPI_DSI_PHY_IF_CFG) = (REG32(REG_MIPI_DSI_PHY_IF_CFG) & ~0x3) | (n_dsi_lanes - 1);
         REG32(REG_MIPI_DSI_REG_54) |= 0x07;
         uint32_t tmp = REG32(REG_MIPI_DSI_REG_60);
         (void)tmp;
         REG32(REG_MIPI_DSI_REG_5C) |= 0x01;
         //hc_mipi_dsi_host_power_on()
         //hc_mipi_dsi_host_pwrctrl()
-        REG32(REG_MIPI_DSI_REG_04) |= 1;
+        REG32(REG_MIPI_DSI_REG_PWRUP) |= 1;
         timeout = 10;
         while ((REG32(REG_MIPI_DSI_REG_60) & BIT(0)) == 0) {
                 busy_wait(30000);
@@ -270,238 +282,238 @@ static void mipi_dsi_host_init(void)
         }
 }
 
+static int mipi_dsi_host_dcs_write_header(uint32_t hdr)
+{
+        int timeout = 100;
+        while (timeout > 0) {
+                uint32_t stat = REG32(REG_MIPI_DSI_CMD_PKT_STATUS);
+                if ((stat & BIT(1)) == 0)
+                        break;
+                timeout--;
+                busy_wait(3000);
+        }
+        if (timeout <= 0) {
+                UART0_puts("CMD FIFO full\r\n");
+                return -1;
+        }
+        //UART0_puts("CMD="); UART0_puthex32(hdr); UART0_puts("\r\n");
+        REG32(REG_MIPI_DSI_GEN_HDR) = hdr;
+        return 0;
+}
+
+static int mipi_dsi_host_dcs_write_short(uint8_t cmd)
+{
+        return mipi_dsi_host_dcs_write_header(0x05 | (cmd << 8));
+}
+
+static int mipi_dsi_host_dcs_write_param(uint8_t cmd, uint8_t param)
+{
+        return mipi_dsi_host_dcs_write_header(0x15 | (cmd << 8) | (param << 16));
+}
+
+static int mipi_dsi_host_dcs_write_long(const uint8_t *data, uint8_t len)
+{
+        if (!data || !len)
+                return -1;
+
+        for (int i = 0; i < len;) {
+                int timeout = 100;
+                uint32_t word;
+
+                if (len - i >= 4) {
+                        word = ((uint32_t)data[i]) |
+                               ((uint32_t)data[i + 1] << 8) |
+                               ((uint32_t)data[i + 2] << 16) |
+                               ((uint32_t)data[i + 3] << 24);
+                        i += 4;
+                } else {
+                        word = 0;
+                        for (int j = len - 1; j >= i; j--) {
+                                word = (word << 8) | data[j];
+                        }
+                        i = len;
+                }
+
+                while (timeout > 0) {
+                        uint32_t stat = REG32(REG_MIPI_DSI_CMD_PKT_STATUS);
+                        if ((stat & BIT(3)) == 0)
+                                break;
+                        timeout--;
+                        busy_wait(3000);
+                }
+                if (timeout <= 0) {
+                        UART0_puts("PLD Tx FIFO full\r\n");
+                        return -1;
+                }
+                //UART0_puts("PLD="); UART0_puthex32(word); UART0_puts("\r\n");
+                REG32(REG_MIPI_DSI_GEN_PLD_DATA) = word;
+        }
+
+        return mipi_dsi_host_dcs_write_header(0x39 | (len << 8));
+}
+
+static int mipi_dsi_host_generic_read(uint8_t type, uint8_t arg1, uint8_t arg2)
+{
+        int err = mipi_dsi_host_dcs_write_header(type | (arg1 << 8) | (arg2 << 16));
+        int timeout = 1000;
+        uint32_t pld;
+
+        if (err < 0)
+                return err;
+
+        while ((REG32(REG_MIPI_DSI_CMD_PKT_STATUS) & BIT(6)) != 0) {
+                timeout--;
+                if (timeout <= 0) {
+                        UART0_puts("CMD Execution timeout\r\n");
+                        return -1;
+                }
+                busy_wait(3000);
+        }
+
+        timeout = 100;
+        while ((REG32(REG_MIPI_DSI_CMD_PKT_STATUS) & BIT(4)) != 0) {
+                timeout--;
+                if (timeout <= 0) {
+                        UART0_puts("PLD Rx FIFO empty\r\n");
+                        return -1;
+                }
+                busy_wait(3000);
+        }
+        pld = REG32(REG_MIPI_DSI_GEN_PLD_DATA);
+
+        /* clear the rest in FIFO if any */
+        while ((REG32(REG_MIPI_DSI_CMD_PKT_STATUS) & BIT(4)) == 0) {
+                uint32_t tmp = REG32(REG_MIPI_DSI_GEN_PLD_DATA);
+                (void) tmp;
+        }
+
+        //UART0_puts("read: 0x"); UART0_puthex8(arg1); UART0_puts(" = 0x"); UART0_puthex32(pld); UART0_puts("\r\n");
+        return pld & 0xffffff;
+}
+
+static int __maybe_unused
+mipi_dsi_host_dcs_read(uint8_t arg)
+{
+        return mipi_dsi_host_generic_read(0x06, arg, 0);
+}
+
+static int __maybe_unused
+mipi_dsi_host_generic_short_read_0args(void)
+{
+        return mipi_dsi_host_generic_read(0x04, 0, 0);
+}
+
+static int __maybe_unused
+mipi_dsi_host_generic_short_read_1arg(uint8_t arg)
+{
+        return mipi_dsi_host_generic_read(0x14, arg, 0);
+}
+
+static int __maybe_unused
+mipi_dsi_host_generic_short_read_2arg(uint8_t arg1, uint8_t arg2)
+{
+        return mipi_dsi_host_generic_read(0x24, arg1, arg2);
+}
+
+static void mipi_dsi_host_dcs_reset(void)
+{
+        mipi_dsi_host_dcs_write_short(0x01);
+        busy_wait(300000);
+}
+
+static int __maybe_unused
+mipi_dsi_host_dcs_set_max_ret_pkt_size(uint8_t maxsz)
+{
+        return mipi_dsi_host_dcs_write_header(0x37 | (maxsz << 8));
+}
+
 static void mipi_dsi_host_set_command_mode(void)
 {
         //mipi_ioctl_vedio_to_cmd()
         //hc_mipi_dsi_enable_hs_clk(1)
         REG32(REG_MIPI_DSI_REG_5C) |= 0x01;
         //hc_mipi_bus_enable_vedio_mode(0)
-        REG32(REG_MIPI_DSI_FLAGS) = 0x03fc; // "dsi,flags" minus BIT(0)
+        REG32(REG_MIPI_DSI_MODECFG) = 0x03fc; // "dsi,flags" minus BIT(0)
         //hc_mipi_bus_enable_cmd_mode(1)
         REG32(REG_MIPI_DSI_REG_24) = (REG32(REG_MIPI_DSI_REG_24) & 0xffff0000) | 0x1fff;
 }
 
-static int mipi_dsi_host_dcs_write_short(uint8_t cmd)
-{
-        uint32_t status = REG32(REG_MIPI_DSI_REG_48);
-        (void)status;
-
-        REG32(REG_MIPI_DSI_REG_34) = 0x00000005 | (cmd << 8);
-        status = REG32(REG_MIPI_DSI_REG_48);
-        //busy_wait(30000);
-        // UART0_puts("dcs_write_short: 0x");
-        // UART0_puthex32(status);
-        // UART0_puts("\r\n");
-        return (status & BIT(7)) ? -1 : 0;
-}
-
-static int mipi_dsi_host_dcs_write_param(uint8_t cmd, uint8_t param)
-{
-    uint32_t status;
-    status = REG32(REG_MIPI_DSI_REG_48);
-    (void)status;
-
-    REG32(REG_MIPI_DSI_REG_34) =
-        0x15 |
-        ((uint32_t)cmd   << 8) |
-        ((uint32_t)param << 16);
-
-    //busy_wait(30000);
-
-    status = REG32(REG_MIPI_DSI_REG_48);
-
-    // UART0_puts("dcs_write_param: 0x");
-    // UART0_puthex32(status);
-    // UART0_puts("\r\n");
-
-    return (status & BIT(7)) ? -1 : 0;
-}
-
-static int mipi_dsi_host_dcs_write_long(const uint8_t *data, uint8_t len)
-{
-    uint32_t word;
-    uint32_t status;
-    unsigned int i;
-
-    if (!data || !len)
-        return -1;
-
-    status = REG32(REG_MIPI_DSI_REG_48);
-    (void)status;
-
-    for (i = 0; i + 4 <= len; i += 4) {
-        word = ((uint32_t)data[i]) |
-               ((uint32_t)data[i + 1] << 8) |
-               ((uint32_t)data[i + 2] << 16) |
-               ((uint32_t)data[i + 3] << 24);
-
-        REG32(REG_MIPI_DSI_REG_38) = word;
-    }
-
-    if (i < len) {
-        word = 0;
-
-        while (i < len)
-            word = (word << 8) | data[i++];
-
-        REG32(REG_MIPI_DSI_REG_38) = word;
-    }
-
-    REG32(REG_MIPI_DSI_REG_34) = 0x39 | ((uint32_t)len << 8);
-
-    //busy_wait(30000);
-
-    status = REG32(REG_MIPI_DSI_REG_48);
-
-    // UART0_puts("dcs_write_long: 0x");
-    // UART0_puthex32(status);
-    // UART0_puts("\r\n");
-
-    return (status & BIT(7)) ? -1 : 0;
-}
-
-static void mipi_dsi_host_generic_read(uint8_t type, uint8_t arg1, uint8_t arg2)
-{
-  REG32(REG_MIPI_DSI_REG_34) = type | (arg1 << 8) | (arg2 << 16);
-  int timeout = 20;
-  uint32_t tmp = REG32(REG_MIPI_DSI_REG_48);
-  if (tmp & 0x3ffff) {
-    // UART0_puts("DCS in failed state: 0x");
-    // UART0_puthex32(tmp);
-    // UART0_puts("\r\n");
-  }
-
-  while ((REG32(REG_MIPI_DSI_REG_3C) & BIT(6)) != 0) {
-        busy_wait(30000);
-        timeout--;
-        if (timeout == 0) {
-                tmp = REG32(REG_MIPI_DSI_REG_60);
-                UART0_puts("Read timeout: 0x");
-
-                REG32(REG_MIPI_DSI_REG_200) |= BIT(12);
-                uint32_t tmp2 = REG32(REG_MIPI_LANE(MIPI_DSI_LANE_DAT0,MIPI_DSI_LANE_REG_00));
-                tmp2 &= 0x00ffffff;
-                tmp2 |= 7 << 24;
-                REG32(REG_MIPI_LANE(MIPI_DSI_LANE_DAT0,MIPI_DSI_LANE_REG_00)) = tmp2;
-                tmp2 &= 0x00ffffff;
-                REG32(REG_MIPI_LANE(MIPI_DSI_LANE_DAT0,MIPI_DSI_LANE_REG_00)) = tmp2;
-                REG32(REG_MIPI_DSI_REG_200) &= ~BIT(12);
-                goto quit;
-        }
-  }
-  UART0_puts("read: 0x"); UART0_puthex8(arg1);
-  UART0_puts(" = 0x");
-  tmp = REG32(REG_MIPI_DSI_REG_38);
-quit:
-  UART0_puthex32(tmp);
-  UART0_puts("\r\n");
-}
-
-static void __maybe_unused
-mipi_dsi_host_dcs_read(uint8_t arg)
-{
-        mipi_dsi_host_generic_read(0x06, arg, 0);
-}
-
-static void __maybe_unused
-mipi_dsi_host_generic_short_read_0args(void)
-{
-        mipi_dsi_host_generic_read(0x04, 0, 0);
-}
-
-static void __maybe_unused
-mipi_dsi_host_generic_short_read_1arg(uint8_t arg)
-{
-        mipi_dsi_host_generic_read(0x14, arg, 0);
-}
-
-static void __maybe_unused
-mipi_dsi_host_generic_short_read_2arg(uint8_t arg1, uint8_t arg2)
-{
-        mipi_dsi_host_generic_read(0x24, arg1, arg2);
-}
-
-static void mipi_dsi_host_dcs_reset(void)
-{
-  mipi_dsi_host_dcs_write_short(0x01);
-  busy_wait(300000);
-}
-
-static void __maybe_unused
-mipi_dsi_host_dcs_set_max_ret_pkt_size(uint8_t maxsz)
-{
-        uint32_t status = REG32(REG_MIPI_DSI_REG_48);
-        (void)status;
-
-        REG32(REG_MIPI_DSI_REG_34) = 0x00000037 | (maxsz << 8);
-        busy_wait(3000);
-
-        status = REG32(REG_MIPI_DSI_REG_48);
-        (void)status;
-}
-
 static void mipi_dsi_host_set_video_mode(void)
 {
-  //hc_mipi_bus_config_package(0, {0})
-  REG32(REG_MIPI_DSI_REG_28) = 0x0E587806;
-  REG32(REG_MIPI_DSI_REG_2C) = 0x03565144;
-  REG32(REG_MIPI_DSI_REG_20) = 480; // hactive & 2 zero fields
+        //hc_mipi_bus_config_package(0, {0})
+        REG32(REG_MIPI_DSI_REG_28) = (HCOMPONENT_TO_LBCC(hsync) << 0)
+                                | (HCOMPONENT_TO_LBCC(hbp) << 9)
+                                | (HCOMPONENT_TO_LBCC(htotal) << 18); // expected: 0x0E587806
+        _Static_assert(HCOMPONENT_TO_LBCC(hsync) < 512, "");
+        _Static_assert(HCOMPONENT_TO_LBCC(hbp) < 512, "");
 
-  //hc_mipi_dsi_enable_hs_clk(1)
-  REG32(REG_MIPI_DSI_REG_5C) |= 0x01;
+        REG32(REG_MIPI_DSI_REG_2C) = (vsync << 0)
+                                | (vbp << 4)
+                                | (vfp << 10)
+                                | (vactive << 16); // expected: 0x03565144
+        _Static_assert(vsync < 16, "");
+        _Static_assert(vbp < 64, "");
+        _Static_assert(vfp < 64, "");
 
-  //hc_mipi_bus_enable_cmd_mode(0)
-  REG32(REG_MIPI_DSI_REG_24) = (REG32(REG_MIPI_DSI_REG_24) & 0xffff0000) | 0x4000;
+        REG32(REG_MIPI_DSI_VIDPKTSIZE) = hactive; // hactive & 2 zero fields
 
-  //hc_mipi_bus_enable_vedio_mode(1)
-  REG32(REG_MIPI_DSI_FLAGS) = 0x03fd; // "dsi,flags" as is
-  //set_mipi_enabled
-  REG32(REG_MIPI_DSI_REG_200) |= BIT(3);
+        //hc_mipi_dsi_enable_hs_clk(1)
+        REG32(REG_MIPI_DSI_REG_5C) |= 0x01;
+
+        //hc_mipi_bus_enable_cmd_mode(0)
+        REG32(REG_MIPI_DSI_REG_24) = (REG32(REG_MIPI_DSI_REG_24) & 0xffff0000) | 0x4000;
+
+        //hc_mipi_bus_enable_vedio_mode(1)
+        REG32(REG_MIPI_DSI_MODECFG) = 0x03fd; // "dsi,flags" as is
+        //set_mipi_enabled
+        REG32(REG_MIPI_DSI_REG_200) |= BIT(3);
 }
 
-static void mipi_dsi_host_dcs_panel_init(const uint8_t *seq)
+static int mipi_dsi_host_dcs_panel_init(const uint8_t *seq)
 {
         uint8_t len;
         uint8_t cmd;
+        int err;
 
         cmd = seq[0];
 
         while (cmd) {
-                // UART0_puts("cmd:");
-                // UART0_puthex8(cmd);
-                // UART0_puts("\r\n");
                 switch (cmd) {
                 case 1:
-                        mipi_dsi_host_dcs_write_short(seq[1]);
+                        err = mipi_dsi_host_dcs_write_short(seq[1]);
                         seq += 2;
                         break;
                 case 2:
-                        mipi_dsi_host_dcs_write_param(seq[1], seq[2]);
+                        err = mipi_dsi_host_dcs_write_param(seq[1], seq[2]);
                         seq += 3;
                         break;
                 case 3:
                 {
                         len = seq[1];
-                        mipi_dsi_host_dcs_write_long(&seq[2], len);
+                        err = mipi_dsi_host_dcs_write_long(&seq[2], len);
                         seq += len + 2;
                         break;
                 }
                 case 4:
                         busy_wait(seq[0] * 10000);
                         seq += 2;
+                        err = 0;
                         break;
                 default:
                         UART0_puts("Unrecognized DCS command:");
                         UART0_puthex8(cmd);
                         UART0_puts("\r\n");
-                        return;
+                        return -1;
                 }
+                if (err < 0)
+                        return err;
                 cmd = seq[0];
         }
+        return 0;
 }
 
 
-static const uint8_t __maybe_unused sf3000_sequence[] = {
+static const uint8_t __maybe_unused sf3000_0x00_sequence[] = {
        3,  6,  0xf0, 0x55, 0xaa, 0x52, 0x08, 0x00, // Novatek page 0 unlock
        3,  3,  0xf6, 0x5a, 0x87,
        2,      0xc1, 0x3f,
@@ -585,7 +597,7 @@ static const uint8_t __maybe_unused sf3000_sequence[] = {
        0, /* sentinel */
 };
 
-static const uint8_t __maybe_unused sf3000_alt_sequence[] = {
+static const uint8_t __maybe_unused sf3000_0x80_sequence[] = {
        3,  4,  0x99, 0x71, 0x02, 0xa2,
        3,  4,  0x99, 0x71, 0x02, 0xa3,
        3,  4,  0x99, 0x71, 0x02, 0xa4,
@@ -675,56 +687,19 @@ static void video_clocks_enable(void)
         REG32(REG_CLKGATE1) &= ~BIT(13); /* VDEC_CLK */
 }
 
-static void video_capture_init(void)
-{
-        REG32(0xb8809004) &= ~BIT(0);
-        REG32(0xb8809008) = 0x1f;
-        REG32(0xb8809000) |= BIT(30);
-        REG32(DE_BASE + REG_DE_1EC) |= BIT(16);
-        REG32(0xb8809000) |= BIT(8);
-        REG32(0xb8809004) &= ~BIT(4);
-        REG32(0xb8809004) &= ~BIT(1);
-        REG32(0xb8809004) &= ~BIT(2);
-        REG32(0xb8809004) &= ~BIT(3);
-        /* is it NTSC or PAL resolution? */
-        const int width = 720;
-        const int height = 288; // 576 / 2
-        REG32(0xb8809030) = (height << 16) | width; // top part of interlaced input
-        REG32(0xb8809034) = (height << 16) | width; // bottom part of interlaced input
-        REG32(0xb8809038) = (height << 16) | width; // top part of interlaced output
-        REG32(0xb880903C) = (height << 16) | width; // bottom part of interlaced output
-        const int h_incr = 0x1000 * 1.0; // width_in / width_out
-        const int v_incr = 0x1000 * 1.0; // height_in / height_out
-        REG32(0xb8809048) = (h_incr << 16) | v_incr;
-        REG32(0xb8809040) = 0;
-        REG32(0xb8809044) = 0;
-        REG32(0xb8809050) = ((width + 31) / 32) * 2; // pitch, pixels
-        REG32(0xb8809000) &= ~0x1f;
-
-        /* TODO fill the coefficients for 1.0x1.0 scaling (no-scaling) */
-        static uint32_t vc_scale_coeffs[0x800] __attribute__((aligned(256))) = { 0 };
-        REG32(0xb8809010) = (uintptr_t)vc_scale_coeffs & 0x1fffffff; // physical address
-        REG32(0xb8809200) |= BIT(1);
-        REG32(0xb8809000) &= ~BIT(30);
-}
-
 static void fxde_init(void)
 {
+#if 0 /* seems like it doesn't affect the result (DSI at least) */
         REG32(DE_BASE + 0x1f04) = 0x1204860;
         REG32(DE_BASE + 0x1f0c) = 0x1204860;
         REG32(DE_BASE + 0x1f14) = 0x1204860;
         REG32(DE_BASE + 0x1f1c) = 0x1204860;
-
-        video_capture_init();
-
+#endif
         REG32(DE_BASE + REG_DE_190) |= BIT(0);
-        REG32(DE_BASE + REG_DE_190) &= ~BIT(22);
-        REG32(DE_BASE + REG_DE_190) |= BIT(23);
-        REG32(DE_BASE + REG_DE_190) &= ~BIT(4);
-        REG32(DE_BASE + REG_DE_190) &= ~BIT(24);
-        REG32(DE_BASE + REG_DE_19C) &= ~BIT(15); // mp_global_k_enable
-        REG32(DE_BASE + REG_DE_19C) &= ~0xff;    // mp_global_k field
-        REG32(DE_BASE + REG_DE_190) &= ~BIT(16);
+        REG32(DE_BASE + REG_DE_19C) = 0x00;    // mp_global_k field
+        REG32(DE_BASE + REG_DE_190) = (REG32(DE_BASE + REG_DE_190) & ~(BIT(24)|BIT(22)|BIT(21)|BIT(16)|BIT(4))) | BIT(23) | BIT(8);
+
+#if 0 /* seems like it doesn't affect the result (DSI at least) */
         REG32(DE_BASE + REG_DE_14C) = (    0 << 16) | (0 & 0x0f) | 0x10;
         REG32(DE_BASE + REG_DE_14C) = (0x100 << 16) | (1 & 0x0f) | 0x10;
         REG32(DE_BASE + REG_DE_14C) = (    0 << 16) | (2 & 0x0f) | 0x10;
@@ -735,12 +710,13 @@ static void fxde_init(void)
         REG32(DE_BASE + REG_DE_14C) = (0x100 << 16) | (7 & 0x0f) | 0x10;
         REG32(DE_BASE + REG_DE_14C) = (    0 << 16) | (8 & 0x0f) | 0x10;
         REG32(DE_BASE + REG_DE_14C) = (0x100 << 16) | (9 & 0x0f) | 0x10;
-        REG32(DE_BASE + REG_DE_190) |= BIT(8); // progressive
-        const int hactive = 480;
-        REG32(DE_BASE + REG_DE_1B8) = (REG32(DE_BASE + REG_DE_1B8) & 0xffffe000) | hactive;
-        REG32(DE_BASE + REG_DE_188) = /*0x00525af0*//*0x00108080*/0x000000ff; // in YCbCr black background color is 0x00108080, red 0x00525af0 but now it is in GBR888 0x00ggbbrr colors.
-        REG32(DE_BASE + REG_DE_18C) &= 0xffff;
-        REG32(DE_BASE + REG_DE_190) &= ~BIT(21); // win_mode
+#endif
+
+        REG32(DE_BASE + REG_DE_1B8) = hactive;
+        REG32(DE_BASE + REG_DE_188) = 0x000000ff; // in YCbCr black background color is 0x00108080, red 0x00525af0 but now it is in GBR888 0x00ggbbrr colors.
+        REG32(DE_BASE + REG_DE_18C) = 0;
+
+#if 0
         REG32(DE_BASE + REG_DE_194) = (REG32(DE_BASE + REG_DE_194) & ~0xf00) | 0x800;
         REG32(DE_BASE + REG_DE_198) = (REG32(DE_BASE + REG_DE_198) & ~0x0ff) | 0x00f;
         REG32(DE_BASE + REG_DE_194) = (REG32(DE_BASE + REG_DE_194) & ~0xf00) | 0x900;
@@ -760,65 +736,36 @@ static void fxde_init(void)
         REG32(DE_BASE + REG_DE_194) &= ~0xffe;
         REG32(DE_BASE + REG_DE_194) |= BIT(16);
         REG32(DE_BASE + REG_DE_1DC) = 0;
+#endif
         REG32(DE_BASE + REG_DE_190) &= ~BIT(0);
 
         // irq settled here
 
-        REG32(DE_BASE + REG_DE_CTL0) &= ~BIT(2);
-        REG32(DE_BASE + REG_DE_CTL0) &= ~BIT(4);
-        REG32(DE_BASE + REG_DE_084) &= ~(BIT(8)|BIT(9)|BIT(10)); // pclk/hsync/vsync levels respectively
-        REG32(DE_BASE + REG_DE_084) |= BIT(8); // pclk is active-high, hv are active-low
-        REG32(DE_BASE + REG_DE_084) |= BIT(14);
-        REG32(DE_BASE + REG_DE_080) &= ~(BIT(9)|BIT(10)); // hsync/vsync levels respectively
-        REG32(DE_BASE + REG_DE_07C) &= ~BIT(4);
-        REG32(DE_BASE + REG_DE_080) &= ~BIT(4);
-        REG32(DE_BASE + REG_DE_084) &= ~BIT(4);
-        REG32(DE_BASE + REG_DE_07C) &= ~BIT(5);
-        REG32(DE_BASE + REG_DE_080) &= ~BIT(5);
-        REG32(DE_BASE + REG_DE_084) &= ~BIT(5);
-        REG32(DE_BASE + REG_DE_080) |= BIT(17);
-        REG32(DE_BASE + REG_DE_084) |= BIT(17);
+        REG32(DE_BASE + REG_DE_CTL0) &= ~(BIT(4)|BIT(2));
         REG32(DE_BASE + REG_DE_INT) &= ~0xff;
-        REG32(DE_BASE + REG_DE_ISRLINE) = (10 << 16) | 0x298; // (bot_start_line + 10) << 16 | (top_start_line + 10), taken from dump
-        REG32(DE_BASE + REG_DE_080) |= BIT(20); // rgb=1
-        REG32(DE_BASE + REG_DE_084) |= BIT(20); // rgb=1
-        REG32(DE_BASE + REG_DE_084) &= ~BIT(24); // mode=Parallel RGB
-        REG32(DE_BASE + REG_DE_084) &= ~BIT(25); // PRGB format=RGB888 or RGB10
-        REG32(DE_BASE + REG_DE_07C) &= ~BIT(16);
-        REG32(DE_BASE + REG_DE_080) &= ~BIT(16);
-        REG32(DE_BASE + REG_DE_084) &= ~BIT(16);
+        REG32(DE_BASE + REG_DE_ISRLINE) = (10 << 16) | (10 << 0); // (bot_start_line + 10) << 16 | (top_start_line + 10)
+        REG32(DE_BASE + REG_DE_07C) = 0x00000000;
+        REG32(DE_BASE + REG_DE_080) = 0x00120102;
+        REG32(DE_BASE + REG_DE_084) = 0x00127102;
         REG32(DE_BASE + REG_DE_CTL0) |= BIT(4);
         REG32(DE_BASE + REG_DE_064) = 0x0037012a;
         REG32(DE_BASE + REG_DE_068) = 0x021d0089;
         REG32(DE_BASE + REG_DE_06C) = 0x000001cb;
-        REG32(DE_BASE + REG_DE_080) |= BIT(9) | BIT(10); // hsync/vsync levels respectively
         REG32(DE_BASE + REG_DE_TIM9) = hactive;
-        REG32(DE_BASE + REG_DE_080) = (REG32(DE_BASE + REG_DE_080) & ~0x03) | 0x02; // PRGB
-        REG32(DE_BASE + REG_DE_084) = (REG32(DE_BASE + REG_DE_084) & ~0x03) | 0x02; // PRGB
-        REG32(DE_BASE + REG_DE_080) &= ~(BIT(9)|BIT(10)); // hsync/vsync levels respectively
-        REG32(DE_BASE + REG_DE_080) |= BIT(8); // pclk active-high
 
         // de clock setup:
         REG32(REG_SYSIO_078) = (REG32(REG_SYSIO_078) & 0xff82f0ff) | (0 << 20) | (2 << 18) | (10 << 8);
 
         // timings:
-        REG32(DE_BASE + REG_DE_TIM0)  = 0x038204c8; // (vtotal << 16) | (htotal * cpp)
-        REG32(DE_BASE + REG_DE_TIM1)  = 0x000804c8; // ((hsync * cpp) << 16) | (htotal * cpp)
-        REG32(DE_BASE + REG_DE_TIM1x) = 0x000804c8;
-        REG32(DE_BASE + REG_DE_TIM2)  = 0x04180054; // ((hactive + hsync + hbp) * cpp << 16) | ((hsync + hbp) * cpp - 4)
-        REG32(DE_BASE + REG_DE_TIM2x) = 0x04180054;
-        REG32(DE_BASE + REG_DE_TIM3)  = 0x00040382; // (vsync << 0x10) | vtotal
-        REG32(DE_BASE + REG_DE_TIM3x) = 0x00040382;
+        REG32(DE_BASE + REG_DE_TIM0)  = (vtotal << 16) | (htotal * cpp); // 0x038204c8
+        REG32(DE_BASE + REG_DE_TIM1)  = ((hsync * cpp) << 16) | (htotal * cpp); // 0x000804c8
+        REG32(DE_BASE + REG_DE_TIM2)  = ((hactive + hsync + hbp) * cpp << 16) | ((hsync + hbp) * cpp - 4); // 0x04180054
+        REG32(DE_BASE + REG_DE_TIM3)  = (vsync << 0x10) | vtotal; // 0x00040382
         REG32(DE_BASE + REG_DE_TIM4)  = 0x0fff0fff;
-        REG32(DE_BASE + REG_DE_TIM4x) = 0x0fff0fff;
         REG32(DE_BASE + REG_DE_TIM5)  = 0x00001fff;
-        REG32(DE_BASE + REG_DE_TIM5x) = 0x00001fff;
-        REG32(DE_BASE + REG_DE_TIM6)  = 0x036e0018;
-        REG32(DE_BASE + REG_DE_TIM6x) = 0x036e0018;
+        REG32(DE_BASE + REG_DE_TIM6)  = ((vactive + vsync + vbp) << 16) | (vsync + vbp); //0x036e0018
         REG32(DE_BASE + REG_DE_TIM7)  = 0x0fff0fff;
-        REG32(DE_BASE + REG_DE_TIM7x) = 0x0fff0fff;
-        REG32(DE_BASE + REG_DE_TIM8)  = 0x03820fff; // (vtotal << 16) | 0xfff
-        REG32(DE_BASE + REG_DE_TIM8x) = 0x03820fff;
+        REG32(DE_BASE + REG_DE_TIM8)  = (vtotal << 16) | 0xfff; // 0x03820fff
 
         REG32(DE_BASE + REG_DE_CTL0) |= BIT(2);
 }
@@ -826,6 +773,11 @@ static void fxde_init(void)
 static void fxde_start(void)
 {
         REG32(DE_BASE + REG_DE_CTL0) |= 1;
+}
+
+static void __maybe_unused fxde_stop(void)
+{
+        REG32(DE_BASE + REG_DE_CTL0) &= ~1;
 }
 
 static void crossbar_connect_fxde_to_mipi_dsi_host(void)
@@ -855,6 +807,9 @@ static void hw_init(void)
 
 int main()
 {
+        int err;
+        uint32_t panel_id;
+
         /* enables UART0_TX on L12 (Volume down key) */
         REG8(REG_PINMUX_L(12)) = 0x01;
 
@@ -871,6 +826,7 @@ int main()
         UART0_puts("xbar\r\n");
         crossbar_connect_fxde_to_mipi_dsi_host();
 
+retry:
         UART0_puts("dsi\r\n");
         mipi_dsi_host_init();
         UART0_puts("cmd\r\n");
@@ -879,35 +835,40 @@ int main()
         UART0_puts("dcs reset\r\n");
         mipi_dsi_host_dcs_reset();
 
-        //mipi_dsi_host_dcs_set_max_ret_pkt_size(1);
-        //mipi_dsi_host_generic_short_read_1arg(0x0A);
+        err = mipi_dsi_host_dcs_set_max_ret_pkt_size(4);
+        if (err < 0)
+                goto retry;
+        err = mipi_dsi_host_generic_short_read_1arg(0x04);
+        if (err < 0)
+                goto retry;
 
-        // mipi_dsi_host_dcs_read(0x0A);
-        // mipi_dsi_host_dcs_read(0x0D);
-        // mipi_dsi_host_dcs_read(0x0E);
+        panel_id = err;
+        UART0_puts("Panel ID: 0x"); UART0_puthex32(panel_id); UART0_puts("\r\n");
+        err = mipi_dsi_host_dcs_read(0x0A);
+        if (err < 0)
+                goto retry;
+        if ((err & 0x80) != 0)
+                UART0_puts("WARN: Panel is already enabled\r\n");
 
         UART0_puts("panel\r\n");
-        mipi_dsi_host_dcs_panel_init(sf3000_sequence);
+        if (panel_id == 0x00049500) {
+                err = mipi_dsi_host_dcs_panel_init(sf3000_0x00_sequence);
+        } else {
+                //err = mipi_dsi_host_dcs_panel_init(sf3000_0x80_sequence);
+                UART0_puts("panel id: 0x");
+                UART0_puthex32(panel_id);
+                UART0_puts(" not supported\r\n");
+                err = -1; // not supported panel
+        }
 
-        //mipi_dsi_host_dcs_read(0x0A);
-        //mipi_dsi_host_dcs_read(0x0D);
-        //mipi_dsi_host_dcs_read(0x0E);
+        if (err < 0)
+                goto retry;
 
-#if 0
-        UART0_puts("slpout\r\n");
-        mipi_dsi_host_dcs_write_short(0x11);
-        busy_wait(220000);
-        //mipi_dsi_host_dcs_read(0x0A);
-        //mipi_dsi_host_dcs_read(0x0D);
-        //mipi_dsi_host_dcs_read(0x0E);
-
-        UART0_puts("enable\r\n");
-        mipi_dsi_host_dcs_write_short(0x29);
-        busy_wait(220000);
-#endif
-        mipi_dsi_host_dcs_read(0x0A);
-        //mipi_dsi_host_dcs_read(0x0D);
-        //mipi_dsi_host_dcs_read(0x0E);
+        err = mipi_dsi_host_dcs_read(0x0A);
+        if (err < 0)
+                goto retry;
+        if ((err & 0x80) == 0)
+                UART0_puts("WARN: Panel is not enabled\r\n");
 
         UART0_puts("video\r\n");
         mipi_dsi_host_set_video_mode();
@@ -915,18 +876,32 @@ int main()
 
         UART0_puts("done\r\n");
 
-#if 0
-        uint32_t prev_isr_reg = 0x00;
+#if 1
+        static const uint32_t colors[8] = {
+                0x00000000,
+                0x000000ff,
+                0x0000ff00,
+                0x0000ffff,
+                0x00ff0000,
+                0x00ff00ff,
+                0x00ffff00,
+                0x00ffffff,
+        };
+        uint32_t frame = 0;
+        uint32_t color = 0;
+        REG32(DE_BASE + REG_DE_188) = colors[0];
+
         while (1) {
                 uint32_t isr_reg = REG32(DE_BASE + REG_DE_INT);
-                REG32(DE_BASE + REG_DE_INT) = isr_reg;
-                isr_reg = (isr_reg >> 8) & 0xff;
-                if (isr_reg != prev_isr_reg) {
-                        UART0_puts("irq ");
-                        UART0_puthex8(isr_reg);
-                        UART0_puts("\r\n");
+                if ((isr_reg >> 8) & 0x03) { // matches VSYNC IRQ rate
+                        REG32(DE_BASE + REG_DE_INT) = isr_reg;
+                        frame++;
+                        if (frame >= 60) { // 60 fps so every second color is changing
+                                color++;
+                                frame = 0;
+                                REG32(DE_BASE + REG_DE_188) = colors[color & 7];
+                        }
                 }
-                prev_isr_reg = isr_reg;
         }
 #else
         while (1)
