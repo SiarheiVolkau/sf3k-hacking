@@ -153,6 +153,10 @@ const uint32_t n_dsi_lanes = 2;
 const uint32_t bpp = 24;
 #define HCOMPONENT_TO_LBCC(hcmp) (bpp * (hcmp) / (n_dsi_lanes * 8))
 
+#define USE_GMA        1
+#define GMA_USE_RGB888 0
+#define GMA_USE_RGB565 1
+
 static void mipi_dsi_host_init(void)
 {
         //hc_clk_enable(MIPI_CLK==>0x35)
@@ -713,10 +717,16 @@ static void fxde_init(void)
 #endif
 
         REG32(DE_BASE + REG_DE_1B8) = hactive;
-        REG32(DE_BASE + REG_DE_188) = 0x000000ff; // in YCbCr black background color is 0x00108080, red 0x00525af0 but now it is in GBR888 0x00ggbbrr colors.
+        // REG_DE_080[20] changes colorspace of this register for DSI: 0-RGB 1-YCbCr
+        // YCbCr black is 0x00108080, RGB black is 0x00000000.
+#if defined(USE_YCBCR) && USE_YCBCR
+        REG32(DE_BASE + REG_DE_188) = 0x00108080;
+#else
+        REG32(DE_BASE + REG_DE_188) = 0x00000000;
+#endif
         REG32(DE_BASE + REG_DE_18C) = 0;
 
-#if 0
+#if 0 /* seems like it doesn't affect the result (DSI at least) */
         REG32(DE_BASE + REG_DE_194) = (REG32(DE_BASE + REG_DE_194) & ~0xf00) | 0x800;
         REG32(DE_BASE + REG_DE_198) = (REG32(DE_BASE + REG_DE_198) & ~0x0ff) | 0x00f;
         REG32(DE_BASE + REG_DE_194) = (REG32(DE_BASE + REG_DE_194) & ~0xf00) | 0x900;
@@ -744,16 +754,22 @@ static void fxde_init(void)
         REG32(DE_BASE + REG_DE_CTL0) &= ~(BIT(4)|BIT(2));
         REG32(DE_BASE + REG_DE_INT) &= ~0xff;
         REG32(DE_BASE + REG_DE_ISRLINE) = (10 << 16) | (10 << 0); // (bot_start_line + 10) << 16 | (top_start_line + 10)
-        REG32(DE_BASE + REG_DE_07C) = 0x00000000;
+#if defined(USE_YCBCR) && USE_YCBCR
         REG32(DE_BASE + REG_DE_080) = 0x00120102;
-        REG32(DE_BASE + REG_DE_084) = 0x00127102;
+#else
+        REG32(DE_BASE + REG_DE_080) = 0x00020102;
+#endif
+#if 0 /* seems like these don't affect the DSI path */
+        //REG32(DE_BASE + REG_DE_07C) = 0x00000000;
+        //REG32(DE_BASE + REG_DE_084) = 0x00127102;
+#endif
         REG32(DE_BASE + REG_DE_CTL0) |= BIT(4);
         REG32(DE_BASE + REG_DE_064) = 0x0037012a;
         REG32(DE_BASE + REG_DE_068) = 0x021d0089;
         REG32(DE_BASE + REG_DE_06C) = 0x000001cb;
         REG32(DE_BASE + REG_DE_TIM9) = hactive;
 
-        // de clock setup:
+        // de clock setup: 33MHz pclk
         REG32(REG_SYSIO_078) = (REG32(REG_SYSIO_078) & 0xff82f0ff) | (0 << 20) | (2 << 18) | (10 << 8);
 
         // timings:
@@ -805,6 +821,164 @@ static void hw_init(void)
 	REG32(0xb8801024) = (REG32(0xb8801024) & 0xff00ffff) | (0x40 << 16);
 }
 
+#define GMA_FMT_XRGB888     0
+#define GMA_FMT_RG565       6
+
+#define GMA_RGB_ORDER_ARGB 0
+#define GMA_RGB_ORDER_ABGR 1
+#define GMA_RGB_ORDER_RGBA 2
+#define GMA_RGB_ORDER_BGRA 3
+
+#define GMA_ENHANCE_COEF_INIT { 0 }
+
+/* ---- geometry ---- */
+#if GMA_USE_RGB888
+#  define GMA_PITCH     (hactive * 4u)
+#  define GMA_FMT       GMA_FMT_XRGB888
+#  define GMA_RGB_ORDER GMA_RGB_ORDER_ARGB
+#elif GMA_USE_RGB565
+#  define GMA_PITCH     (hactive * 2u)
+#  define GMA_FMT       GMA_FMT_RG565
+#  define GMA_RGB_ORDER GMA_RGB_ORDER_ARGB
+#endif
+
+/* ---- memory map ---- */
+#define GMA_HDR_PHYS     0x01000000u         /* 2 header blocks, 32-byte aligned */
+#define GMA_BLOCK_BYTES  640u                /* sizeof(gma_dmba_block_t) */
+#define GMA_BLOCK_DWORDS (GMA_BLOCK_BYTES / 4u)
+#define GMA_FB_BYTES     0x191000u           /* max 480*854*4 = 0x190500, rounded to 4 KiB */
+#define GMA_FB_PHYS(i)   (0x01001000u + (i) * GMA_FB_BYTES)  /* 4 KiB aligned */
+
+#define KSEG1(pa)    ((uintptr_t)(pa) | 0xa0000000u)   /* uncached alias */
+#define PHYS(a)      ((uint32_t)((uintptr_t)(a) & 0x1fffffffu))
+
+static uint32_t *const gma_blk[2] = {
+        (uint32_t *)KSEG1(GMA_HDR_PHYS),
+        (uint32_t *)KSEG1(GMA_HDR_PHYS + GMA_BLOCK_BYTES),
+};
+static const uint32_t gma_enhance_coef[13] = GMA_ENHANCE_COEF_INIT;
+static int gma_front;
+
+static void gma_hold(void)    { REG32(DE_BASE + REG_DE_GMA0_MASK) |= BIT(0); }
+static void gma_release(void) { REG32(DE_BASE + REG_DE_GMA0_MASK) &= ~BIT(0); }
+
+/* Header: 10 dwords at offset 0, scaler coefs at +64 (512 B, left zero: no
+ * scaling), enhance/CSC coefs at +576 (13 dwords). Bit positions follow
+ * gma_header_t in hcfb.c. */
+static void gma_build_block(volatile uint32_t *b, uint32_t fb_phys)
+{
+        for (unsigned i = 0; i < GMA_BLOCK_DWORDS; i++)
+                b[i] = 0;
+
+        b[0] = BIT(0)                              /* is_last_block */
+             | (GMA_FMT << 4)                      /* gma_mode */
+             | BIT(8)                              /* color_by_color (no global alpha) */
+             | BIT(9)                              /* clut_mode = DMA (driver default) */
+             | BIT(11)                             /* pre_multiply (driver default) */
+             /* csc_mode (bit 12) = 0: CSC is bypassed in CTL anyway */
+             | (32u << 16)                         /* edge_preserve_reduce_thr */
+             | (170u << 24);                       /* edge_preserve_avg_thr */
+        b[1] = 0;                                  /* clut_base: unused for true color */
+        b[2] = 0 | ((hactive - 1) << 16);          /* sx | ex << 16 (ex inclusive) */
+        b[3] = 0 | ((vactive - 1) << 16);          /* sy | ey << 16 (ey inclusive) */
+        b[4] = hactive | (vactive << 16);          /* src_w | src_h << 16 */
+        b[5] = 0xffu                               /* global_alpha */
+             | ((GMA_RGB_ORDER & 3u) << 12)        /* rgb_order */
+             | (GMA_PITCH << 16);                  /* pitch in bytes */
+        b[6] = 0;                                  /* next: single block */
+        b[7] = fb_phys;                            /* bitmap_addr */
+        b[8] = 0;                                  /* scale_mode=filter, filter_select=0 */
+        b[9] = 0;                                  /* inc_h / inc_v: scaling off */
+
+        for (unsigned i = 0; i < 13; i++)
+                b[576 / 4 + i] = gma_enhance_coef[i];
+}
+
+static void gma_set_dmba(uint32_t blk_phys)
+{
+        gma_hold();
+        REG32(DE_BASE + REG_DE_GMA0_DMBA) = blk_phys;
+        gma_release();
+}
+
+void gma_fb_init(void)
+{
+        gma_build_block(gma_blk[0], GMA_FB_PHYS(0));
+        gma_build_block(gma_blk[1], GMA_FB_PHYS(1));
+
+        /* single GMA layer, width <= 1280: Linux uses 0xa for fb0 only */
+        gma_hold();
+        REG32(DE_BASE + REG_DE_GMA0_LINEBUF) = (REG32(DE_BASE + REG_DE_GMA0_LINEBUF) & ~0x1fu) | 0x0a;
+        gma_release();
+
+        /* RGB pipe: CSC bypass on (bit19 = 1), sharpness (a YCbCr-domain
+         * enhancement) off (bit18 = 0). Linux does the opposite for YCbCr. */
+        REG32(DE_BASE + REG_DE_GMA0_CTL) = (REG32(DE_BASE + REG_DE_GMA0_CTL) & ~BIT(18)) | BIT(19);
+
+        /* opaque global alpha, global alpha mode off */
+        REG32(DE_BASE + REG_DE_GMA0_K) = (REG32(DE_BASE + REG_DE_GMA0_K) & ~(BIT(16) | 0xffu)) | 0xffu;
+
+        gma_front = 0;
+        gma_set_dmba(PHYS(gma_blk[0]));
+
+        gma_hold();
+        REG32(DE_BASE + REG_DE_GMA0_CTL) |= BIT(0);        /* show */
+        gma_release();
+}
+
+static void __maybe_unused de_wait_vsync(void)
+{
+        uint32_t isr = REG32(DE_BASE + REG_DE_INT);
+
+        REG32(DE_BASE + REG_DE_INT) = isr;         /* drop stale pending bits (W1C) */
+        do {
+                isr = REG32(DE_BASE + REG_DE_INT);
+        } while (((isr >> 8) & 0x03) == 0);
+        REG32(DE_BASE + REG_DE_INT) = isr;
+}
+
+void __maybe_unused gma_flip(void)
+{
+        uint32_t blk;
+
+        gma_front ^= 1;
+        blk = PHYS(gma_blk[gma_front]);
+        gma_set_dmba(blk);
+}
+
+#define RGB565(r, g, b) ((uint16_t)((((r) & 0xf8) << 8) | (((g) & 0xfc) << 3) | ((b) >> 3)))
+static void __maybe_unused
+gma_stripes16(uint16_t *fb, uint16_t c0, uint16_t c1, uint16_t c2)
+{
+        for (uint32_t y = 0; y < vactive; y++)
+                for (uint32_t x = 0; x < hactive; x++)
+                        fb[y * hactive + x] = x < hactive / 3 ? c0 :
+                                            x < 2 * hactive / 3 ? c1 : c2;
+}
+
+static void __maybe_unused
+gma_stripes32(uint32_t *fb, uint32_t c0, uint32_t c1, uint32_t c2)
+{
+        for (uint32_t y = 0; y < vactive; y++)
+                for (uint32_t x = 0; x < hactive; x++)
+                        fb[y * hactive + x] = x < hactive / 3 ? c0 :
+                                        x < 2 * hactive / 3 ? c1 : c2;
+}
+
+void __maybe_unused gma_init(void)
+{
+        gma_fb_init();                                /* xxRRGGBB */
+#if GMA_USE_RGB888
+        gma_stripes32((uint32_t *)KSEG1(GMA_FB_PHYS(0)), 0x00ff0000, 0x0000ff00, 0x000000ff);
+        gma_stripes32((uint32_t *)KSEG1(GMA_FB_PHYS(1)), 0x00000000, 0x00808080, 0x00ffffff);
+#elif GMA_USE_RGB565
+        gma_stripes16((uint16_t *)KSEG1(GMA_FB_PHYS(0)),
+                RGB565(255, 0, 0), RGB565(0, 255, 0), RGB565(0, 0, 255));
+        gma_stripes16((uint16_t *)KSEG1(GMA_FB_PHYS(1)),
+                RGB565(0, 0, 0), RGB565(128, 128, 128), RGB565(255, 255, 255));
+#endif
+}
+
 int main()
 {
         int err;
@@ -821,6 +995,9 @@ int main()
         video_clocks_enable();
         UART0_puts("fxde\r\n");
         fxde_init();
+#if USE_GMA
+        gma_init();
+#endif
         UART0_puts("bl\r\n");
         backlight_init();
         UART0_puts("xbar\r\n");
@@ -858,7 +1035,7 @@ retry:
                 UART0_puts("panel id: 0x");
                 UART0_puthex32(panel_id);
                 UART0_puts(" not supported\r\n");
-                err = -1; // not supported panel
+                err = -1;
         }
 
         if (err < 0)
@@ -877,19 +1054,22 @@ retry:
         UART0_puts("done\r\n");
 
 #if 1
-        static const uint32_t colors[8] = {
-                0x00000000,
-                0x000000ff,
-                0x0000ff00,
-                0x0000ffff,
-                0x00ff0000,
-                0x00ff00ff,
-                0x00ffff00,
-                0x00ffffff,
+        static const uint32_t colors[16] = {
+                0x00000000, 0x00108080, // black RGB, YCbCr
+                0x000000ff, 0x00515af0, // red
+                0x0000ff00, 0x0029f06e, // blue
+                0x0000ffff, 0x006acade, // magenta
+                0x00ff0000, 0x00913622, // green
+                0x00ff00ff, 0x00d21092, // yellow
+                0x00ffff00, 0x00aaa610, // cyan
+                0x00ffffff, 0x00eb8080, // white
         };
         uint32_t frame = 0;
         uint32_t color = 0;
-        REG32(DE_BASE + REG_DE_188) = colors[0];
+#if !defined (USE_YCBCR)
+#define USE_YCBCR 0
+#endif
+        REG32(DE_BASE + REG_DE_188) = colors[USE_YCBCR];
 
         while (1) {
                 uint32_t isr_reg = REG32(DE_BASE + REG_DE_INT);
@@ -899,7 +1079,13 @@ retry:
                         if (frame >= 60) { // 60 fps so every second color is changing
                                 color++;
                                 frame = 0;
-                                REG32(DE_BASE + REG_DE_188) = colors[color & 7];
+                                if (USE_GMA) {
+                                        gma_flip();
+                                } else {
+                                        // FIXME: the RGB or YCbCr output format can't be changed on the fly,
+                                        // find out the right register change sequence.
+                                        REG32(DE_BASE + REG_DE_188) = colors[(color & 7) * 2 + USE_YCBCR];
+                                }
                         }
                 }
         }

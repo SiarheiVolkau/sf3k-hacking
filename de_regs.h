@@ -186,6 +186,8 @@
  *           in ioctl it depends on de2hdmi.format:
  *           1 - for RGB_MODE1 and RGB_MODE2
  *           0 - otherwise.
+ *           My observations:
+ *           REG_80[20] affects MIPI DSI path and RGB colors are used when the bit is cleared, YCbCr otherwise.
  * [24]    - field called "format_sel" by vendor code. see qjoqNHWLrJkXEGDMssHNdpCiGImggVzQ. 084 only.
  *           0 - RGB mode parallel (PRGB)
  *           1 - RGB mode serial (SRGB)
@@ -205,7 +207,7 @@
  * 084: 0x00127102
  */
 #define REG_DE_07C       (0x007C)
-#define REG_DE_080       (0x0084)
+#define REG_DE_080       (0x0080)
 #define REG_DE_084       (0x0084)
 
 /* DE_088 Register: seems unused by vendor's code. SF3000 dump shows 0x00108080
@@ -639,20 +641,30 @@
  */
 #define REG_DE_1FC       (0x01FC)
 
-/*
-300 - GMA0 HC_GMA_CTL
-304 - GMA0 HC_GMA_DMBA
-308 - GMA0 HC_GMA_K
-350 - GMA0 HC_GMA_MASK
-358 - GMA0 HC_GMA_LINEBUF
+/* [0] enable, [18] sharpness enhance, [19] CSC bypass */
+#define REG_DE_GMA0_CTL  (0x0300)
+/* physical address of header block, 32-byte aligned */
+#define REG_DE_GMA0_DMBA (0x0304)
+/* [7:0] global alpha, [16] global alpha enable */
+#define REG_DE_GMA0_K    (0x0308)
+/* [0] hold: set before touching GMA regs, clear to commit */
+#define REG_DE_GMA0_MASK (0x0350)
+/* [4:0] line buffer combination */
+#define REG_DE_GMA0_LINEBUF (0x0358)
 
-380 - GMA1
+#define REG_DE_GMA1_CTL  (0x0380)
+#define REG_DE_GMA1_DMBA (0x0384)
+#define REG_DE_GMA1_K    (0x0388)
+#define REG_DE_GMA1_MASK (0x03B0)
+#define REG_DE_GMA1_DATA (0x03B8)
+
+/*
 
 400
 404
 
-9f4 -> same structure as 1f4
-9f8 -> same structure as 1f8
+800 - active mirror
+
 */
 
 #endif
