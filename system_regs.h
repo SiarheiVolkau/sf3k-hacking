@@ -170,8 +170,8 @@
 #define REG_SYSIO_076      (SYSTEM_BASE + 0x0076)
 
 /* REG_SYSIO_078:
- * [3]    - MIPI clock (TODO figure out gate or selector?)
- * [11:8] - DE HDMI clock selector
+ * [3]    - MIPI clock selector (what the frequencies?)
+ * [11:8] - DE HDMI clock selector (also affects MIPI, likely match pixel clock)
  *          0x00 - 27MHz
  *          0x01 - 54MHz
  *          0x02 - 74.25MHz

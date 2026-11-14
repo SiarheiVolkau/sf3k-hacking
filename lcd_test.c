@@ -153,10 +153,6 @@ const uint32_t n_dsi_lanes = 2;
 const uint32_t bpp = 24;
 #define HCOMPONENT_TO_LBCC(hcmp) (bpp * (hcmp) / (n_dsi_lanes * 8))
 
-#define USE_GMA        1
-#define GMA_USE_RGB888 0
-#define GMA_USE_RGB565 1
-
 static void mipi_dsi_host_init(void)
 {
         //hc_clk_enable(MIPI_CLK==>0x35)
@@ -242,7 +238,7 @@ static void mipi_dsi_host_init(void)
         //hc_mipi_bus_config_dpi()
         REG32(REG_MIPI_DSI_REG_0C) = (5 << 2); // DPI format 24-bit, DSI format is the same.
         REG32(REG_MIPI_DSI_REG_08) = (REG32(REG_MIPI_DSI_REG_08) & 0xffff0000)
-                                   | (0x01 << 8) | 0x03; // 0x03 taken from SF3000 dump DCS read became stable. Initiall value 0x07.
+                                   | (0x01 << 8) | 0x03; // 0x03 taken from SF3000 dump DCS read became stable. Initial value 0x07.
         //hc_mipi_bus_config_dbi()
         REG32(REG_MIPI_DSI_REG_10) = BIT(6) | BIT(0); // ??? - reconstruct sets at least 2 bits BIT(0) | BIT(6)
         //hc_mipi_bus_config_cmd_size()
@@ -499,7 +495,7 @@ static int mipi_dsi_host_dcs_panel_init(const uint8_t *seq)
                         break;
                 }
                 case 4:
-                        busy_wait(seq[0] * 10000);
+                        busy_wait(seq[1] * 1000);
                         seq += 2;
                         err = 0;
                         break;
@@ -517,8 +513,8 @@ static int mipi_dsi_host_dcs_panel_init(const uint8_t *seq)
 }
 
 
-static const uint8_t __maybe_unused sf3000_0x00_sequence[] = {
-       3,  6,  0xf0, 0x55, 0xaa, 0x52, 0x08, 0x00, // Novatek page 0 unlock
+static const uint8_t __maybe_unused gc9503v_sequence[] = {
+       3,  6,  0xf0, 0x55, 0xaa, 0x52, 0x08, 0x00,
        3,  3,  0xf6, 0x5a, 0x87,
        2,      0xc1, 0x3f,
        2,      0xcd, 0x25,
@@ -662,33 +658,39 @@ static const uint8_t __maybe_unused sf3000_0x80_sequence[] = {
 };
 
 
-static void video_clocks_enable(void)
+static void video_clocks_disable_unused(void)
 {
         /* DE4K clocks */
-        REG32(REG_CLKGATE3) &= ~0x3f;
+        REG32(REG_CLKGATE3) |= 0x3f;
 
         /* VideoDAC Clocks */
-        REG32(REG_CLKGATE2) &= ~0x700;
+        REG32(REG_CLKGATE2) |= 0x700;
 
         /* HDMI */
-        REG32(REG_CLKGATE1) &= ~BIT(19); /* HDMI_TX_PHY_REFP_CLK */
-        REG32(REG_CLKGATE2) &= ~(BIT(27) | BIT(14)); /* HDMI_TX_PHY_SYS_CLK | HDMI_TX_CLK */
-        REG32(REG_CLKGATE3) &= ~0x3f00000; /* HDMI Audio clocks */
+        REG32(REG_CLKGATE1) |= BIT(19); /* HDMI_TX_PHY_REFP_CLK */
+        REG32(REG_CLKGATE2) |= BIT(27) | BIT(14); /* HDMI_TX_PHY_SYS_CLK | HDMI_TX_CLK */
+        REG32(REG_CLKGATE3) |= 0x3f00000; /* HDMI Audio clocks */
 
         /* MISC */
-        REG32(REG_CLKGATE2) &= ~BIT(0);  /* VOU_HD_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(2);  /* DE_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(3);  /* TVENC_SD_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(5);  /* TVENC_HD_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(7);  /* DE_HDMI_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(12); /* SGDMA1_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(13); /* SGDMA2_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(17); /* DVI_CLK */
-        REG32(REG_CLKGATE2) &= ~BIT(0);  /* VOU_HD_EXT_CLK */
+        REG32(REG_CLKGATE2) |= BIT(0);  /* VOU_HD_CLK */
+        REG32(REG_CLKGATE2) |= BIT(3);  /* TVENC_SD_CLK */
+        REG32(REG_CLKGATE2) |= BIT(5);  /* TVENC_HD_CLK */
+        REG32(REG_CLKGATE2) |= BIT(12); /* SGDMA1_CLK */
+        REG32(REG_CLKGATE2) |= BIT(13); /* SGDMA2_CLK */
+        REG32(REG_CLKGATE2) |= BIT(17); /* DVI_CLK */
+        REG32(REG_CLKGATE2) |= BIT(0);  /* VOU_HD_EXT_CLK */
 
         /* VDEC and VE */
-        REG32(REG_CLKGATE2) &= ~BIT(1);  /* VE_CLK */
-        REG32(REG_CLKGATE1) &= ~BIT(13); /* VDEC_CLK */
+        REG32(REG_CLKGATE2) |= BIT(1);  /* VE_CLK */
+        REG32(REG_CLKGATE1) |= BIT(13); /* VDEC_CLK */
+}
+
+static void fxde_clocks_enable(void)
+{
+        /* FXDE mandatory clocks even when HDMI is disabled/unused */
+        REG32(REG_CLKGATE2) &= ~BIT(2);  /* DE_CLK */
+        REG32(REG_CLKGATE2) &= ~BIT(7);  /* DE_HDMI_CLK */
+
 }
 
 static void fxde_init(void)
@@ -821,6 +823,17 @@ static void hw_init(void)
 	REG32(0xb8801024) = (REG32(0xb8801024) & 0xff00ffff) | (0x40 << 16);
 }
 
+#define USE_GMA        1
+#define GMA_USE_RGB888 1
+#define GMA_USE_RGB565 0
+#define GMA_OUT_WIDTH  480
+#define GMA_OUT_HEIGHT 640
+#define GMA_OUT_POS_X  ((hactive - GMA_OUT_WIDTH) / 2)  /* centered */
+#define GMA_OUT_POS_Y  ((vactive - GMA_OUT_HEIGHT) / 2) /* centered */
+#define GMA_IN_WIDTH   240
+#define GMA_IN_HEIGHT  320
+
+
 #define GMA_FMT_XRGB888     0
 #define GMA_FMT_RG565       6
 
@@ -833,11 +846,11 @@ static void hw_init(void)
 
 /* ---- geometry ---- */
 #if GMA_USE_RGB888
-#  define GMA_PITCH     (hactive * 4u)
+#  define GMA_PITCH     (GMA_IN_WIDTH * 4u)
 #  define GMA_FMT       GMA_FMT_XRGB888
 #  define GMA_RGB_ORDER GMA_RGB_ORDER_ARGB
 #elif GMA_USE_RGB565
-#  define GMA_PITCH     (hactive * 2u)
+#  define GMA_PITCH     (GMA_IN_WIDTH * 2u)
 #  define GMA_FMT       GMA_FMT_RG565
 #  define GMA_RGB_ORDER GMA_RGB_ORDER_ARGB
 #endif
@@ -857,15 +870,51 @@ static uint32_t *const gma_blk[2] = {
         (uint32_t *)KSEG1(GMA_HDR_PHYS + GMA_BLOCK_BYTES),
 };
 static const uint32_t gma_enhance_coef[13] = GMA_ENHANCE_COEF_INIT;
+
+/* precalculated */
+static const short gma_upscale2x_horizontal_taps[4][16] = {
+        {  0,  -1,  -2,  -4,  -6,  -8, -11, -13, -14, -15, -15, -14, -12,  -7,  -2,   6 },
+        { 16,  27,  40,  55,  71,  89, 106, 124, 142, 160, 176, 189, 203, 212, 220, 224 },
+        { 224, 224, 220, 212, 203, 189, 176, 160, 142, 124, 106,  89,  71,  55,  40,  27 },
+        { 16,   6,  -2,  -7, -12, -14, -15, -15, -14, -13, -11,  -8,  -6,  -4,  -2,  -1 },
+};
+static const short gma_upscale2x_vertical_taps[3][16] = {
+        {   0,  -2,  -4,  -5,  -5,  -4,  -1,   4,  11,  20,  31,  44,  59,  75,  92, 110 },
+        { 128, 148, 168, 186, 202, 216, 226, 232, 234, 232, 226, 216, 202, 186, 168, 148 },
+        { 128, 110,  92,  75,  59,  44,  31,  20,  11,   4,  -1,  -4,  -5,  -5,  -4,  -2 },
+};
+
 static int gma_front;
 
 static void gma_hold(void)    { REG32(DE_BASE + REG_DE_GMA0_MASK) |= BIT(0); }
 static void gma_release(void) { REG32(DE_BASE + REG_DE_GMA0_MASK) &= ~BIT(0); }
 
+static void gma_pack_scale_coef2x(uint32_t *b)
+{
+        uint16_t *c = (uint16_t *)((uintptr_t)b + 64);
+
+        for (unsigned i = 0; i < 256; i++)
+                c[i] = 0;
+
+        for (unsigned i = 0; i < 16; i++) {
+                uint16_t *h = c + 8 * i;
+                uint16_t *v = c + 128 + 8 * i;
+
+                h[0] = gma_upscale2x_horizontal_taps[3][i] & 0x0ff;
+                h[1] = gma_upscale2x_horizontal_taps[2][i] & 0x1ff;
+                h[2] = gma_upscale2x_horizontal_taps[1][i] & 0x1ff;
+                h[3] = gma_upscale2x_horizontal_taps[0][i] & 0x0ff;
+
+                v[0] = gma_upscale2x_vertical_taps[2][i] & 0x1ff;
+                v[1] = gma_upscale2x_vertical_taps[1][i] & 0x1ff;
+                v[2] = gma_upscale2x_vertical_taps[0][i] & 0x1ff;
+        }
+}
+
 /* Header: 10 dwords at offset 0, scaler coefs at +64 (512 B, left zero: no
  * scaling), enhance/CSC coefs at +576 (13 dwords). Bit positions follow
  * gma_header_t in hcfb.c. */
-static void gma_build_block(volatile uint32_t *b, uint32_t fb_phys)
+static void gma_build_block(uint32_t *b, uint32_t fb_phys)
 {
         for (unsigned i = 0; i < GMA_BLOCK_DWORDS; i++)
                 b[i] = 0;
@@ -879,16 +928,24 @@ static void gma_build_block(volatile uint32_t *b, uint32_t fb_phys)
              | (32u << 16)                         /* edge_preserve_reduce_thr */
              | (170u << 24);                       /* edge_preserve_avg_thr */
         b[1] = 0;                                  /* clut_base: unused for true color */
-        b[2] = 0 | ((hactive - 1) << 16);          /* sx | ex << 16 (ex inclusive) */
-        b[3] = 0 | ((vactive - 1) << 16);          /* sy | ey << 16 (ey inclusive) */
-        b[4] = hactive | (vactive << 16);          /* src_w | src_h << 16 */
+        b[2] = GMA_OUT_POS_X | ((GMA_OUT_POS_X + GMA_OUT_WIDTH - 1) << 16);  /* sx | ex << 16 (ex inclusive) */
+        b[3] = GMA_OUT_POS_Y | ((GMA_OUT_POS_Y + GMA_OUT_HEIGHT - 1) << 16); /* sy | ey << 16 (ey inclusive) */
+        b[4] = GMA_IN_WIDTH | (GMA_IN_HEIGHT << 16);                         /* src_w | src_h << 16 */
         b[5] = 0xffu                               /* global_alpha */
              | ((GMA_RGB_ORDER & 3u) << 12)        /* rgb_order */
              | (GMA_PITCH << 16);                  /* pitch in bytes */
         b[6] = 0;                                  /* next: single block */
         b[7] = fb_phys;                            /* bitmap_addr */
         b[8] = 0;                                  /* scale_mode=filter, filter_select=0 */
-        b[9] = 0;                                  /* inc_h / inc_v: scaling off */
+        b[9] = (4096 * GMA_IN_WIDTH / GMA_OUT_WIDTH)
+             | ((4096 * GMA_IN_HEIGHT / GMA_OUT_HEIGHT) << 16); /* inc_h | (inc_v << 16); inc = 4096 * src / dst  */
+
+        /* FIXME not universal, upscale 2x only */
+        gma_pack_scale_coef2x(b);
+        if (GMA_IN_HEIGHT != GMA_OUT_HEIGHT || GMA_IN_WIDTH != GMA_OUT_WIDTH)
+                b[0] |= BIT(2); /* scale */
+        if (GMA_IN_HEIGHT < GMA_OUT_HEIGHT || GMA_IN_WIDTH < GMA_OUT_WIDTH)
+                b[0] |= BIT(3); /* scale up */
 
         for (unsigned i = 0; i < 13; i++)
                 b[576 / 4 + i] = gma_enhance_coef[i];
@@ -950,19 +1007,19 @@ void __maybe_unused gma_flip(void)
 static void __maybe_unused
 gma_stripes16(uint16_t *fb, uint16_t c0, uint16_t c1, uint16_t c2)
 {
-        for (uint32_t y = 0; y < vactive; y++)
-                for (uint32_t x = 0; x < hactive; x++)
-                        fb[y * hactive + x] = x < hactive / 3 ? c0 :
-                                            x < 2 * hactive / 3 ? c1 : c2;
+        for (uint32_t y = 0; y < GMA_IN_HEIGHT; y++)
+                for (uint32_t x = 0; x < GMA_IN_WIDTH; x++)
+                        fb[y * GMA_IN_WIDTH + x] = x < GMA_IN_WIDTH / 3 ? c0 :
+                                            x < 2 * GMA_IN_WIDTH / 3 ? c1 : c2;
 }
 
 static void __maybe_unused
 gma_stripes32(uint32_t *fb, uint32_t c0, uint32_t c1, uint32_t c2)
 {
-        for (uint32_t y = 0; y < vactive; y++)
-                for (uint32_t x = 0; x < hactive; x++)
-                        fb[y * hactive + x] = x < hactive / 3 ? c0 :
-                                        x < 2 * hactive / 3 ? c1 : c2;
+        for (uint32_t y = 0; y < GMA_IN_HEIGHT; y++)
+                for (uint32_t x = 0; x < GMA_IN_WIDTH; x++)
+                        fb[y * GMA_IN_WIDTH + x] = x < GMA_IN_WIDTH / 3 ? c0 :
+                                        x < 2 * GMA_IN_WIDTH / 3 ? c1 : c2;
 }
 
 void __maybe_unused gma_init(void)
@@ -979,6 +1036,8 @@ void __maybe_unused gma_init(void)
 #endif
 }
 
+#define PANEL_GC9503V_ID 0x00049500
+
 int main()
 {
         int err;
@@ -992,7 +1051,8 @@ int main()
         usb_disable();
 
         UART0_puts("usb\r\n");
-        video_clocks_enable();
+        video_clocks_disable_unused();
+        fxde_clocks_enable();
         UART0_puts("fxde\r\n");
         fxde_init();
 #if USE_GMA
@@ -1028,8 +1088,8 @@ retry:
                 UART0_puts("WARN: Panel is already enabled\r\n");
 
         UART0_puts("panel\r\n");
-        if (panel_id == 0x00049500) {
-                err = mipi_dsi_host_dcs_panel_init(sf3000_0x00_sequence);
+        if (panel_id == PANEL_GC9503V_ID) {
+                err = mipi_dsi_host_dcs_panel_init(gc9503v_sequence);
         } else {
                 //err = mipi_dsi_host_dcs_panel_init(sf3000_0x80_sequence);
                 UART0_puts("panel id: 0x");
@@ -1053,7 +1113,6 @@ retry:
 
         UART0_puts("done\r\n");
 
-#if 1
         static const uint32_t colors[16] = {
                 0x00000000, 0x00108080, // black RGB, YCbCr
                 0x000000ff, 0x00515af0, // red
@@ -1089,10 +1148,7 @@ retry:
                         }
                 }
         }
-#else
-        while (1)
-                ;
-#endif
+
         return 0;
 }
 
